@@ -13,7 +13,7 @@
 - **Multi-format outputs**: Markdown, HTML, JSON, interactive Nushell scripts
 - **Collection types**: Repositories, research papers, media libraries, creative projects, datasets
 
-## 🎯 Why This Approach?
+## Why This Approach?
 
 General file organizers chase "never think about files again" but usually end up with mediocre generic sorting. Collectivist focuses on **intentional collections** where each item matters, enabling:
 
@@ -22,11 +22,12 @@ General file organizers chase "never think about files again" but usually end up
 - **Documentation as artifact**: READMEs become real knowledge repositories
 - **Curation that feels magical**: Context-aware organization based on actual intent
 
-## 🔄 Three-Stage Pipeline
+## 🧬 Pipeline
 
 1. **Analyzer**: LLM inspects structure, determines collection type, generates config
 2. **Scanner**: Domain plugins discover items with rich metadata extraction
 3. **Describer**: LLM generates descriptions and assigns semantic categories
+4. **Curator**: LLM organizes and reindexes collection on scheduled cadence 
 
 ## 🌐 Installation
 
@@ -50,7 +51,7 @@ python -m .collection analyze
 # collectivist init ~/my-collection --standard
 ```
 
-## ⚙️ Configuration
+## Configuration
 
 Configure LLM providers via environment variables or copy `.env.example` to `.env` and edit. See `.env.example` for detailed examples.
 
@@ -125,7 +126,7 @@ exclude_hidden: true
 scanner_config: {}
 ```
 
-## Plugins
+## 🔌 Plugins
 
 ### Repository Scanner
 
