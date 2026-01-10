@@ -11,7 +11,7 @@
 - **LLM-powered analysis**: Automatic categorization and rich description generation. 
 - **Living documentation**: Auto-generated READMEs that become real knowledge artifacts
 - **Zero-install minimal mode**: Drop `.collection/` folder anywhere, works immediately.
-- **Easy configuration**: Use any OpenAI compatible LLM provider; local or cloud-hosted. 
+- **Easy configuration**: Use any OpenAI compatible LLM provider; local or cloud-hosted. Defaults to LM Studio
 - **Multi-format outputs**: Markdown, HTML, JSON, interactive shell scripts
 - **Collection types**: Repositories, Obsidian vaults, documents, media files, research papers, creative projects, datasets
 
