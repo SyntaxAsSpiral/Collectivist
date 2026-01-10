@@ -14,7 +14,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 import yaml
 
-from ..plugin_interface import CollectionScanner, CollectionItem, PluginRegistry
+from plugin_interface import CollectionScanner, CollectionItem, PluginRegistry
 
 
 class PLUGIN_NAMEScanner(CollectionScanner):

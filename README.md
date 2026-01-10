@@ -10,10 +10,7 @@
 - **Collection overview generation**: LLM-powered contextual summaries of complete collections
 - **Curation that feels magical**: Context-aware organization based on actual intent
 - **LLM-powered analysis**: Automatic categorization and rich description generation
-- **Template-based rendering**: Deterministic output generation in multiple formats (Markdown, HTML, JSON)
 - **Living documentation**: Auto-generated READMEs that become real knowledge artifacts
-- **Portable install minimal mode**: Drop `.collection/` folder anywhere, works immediately
-- **Multi-location configuration**: YAML and Markdown-embedded config with smart defaults
 - **Multi-format outputs**: Markdown documentation, interactive HTML index, JSON export
 - **Collection types**: Repositories, Obsidian vaults, documents, media files, research papers, creative projects, datasets
 
