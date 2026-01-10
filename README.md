@@ -50,14 +50,9 @@ python -m .collection analyze
 # Coming soon: pip install collectivist
 # collectivist init ~/my-collection --standard
 ```
+## Usage
 
-## Configuration
-
-Configure LLM providers via environment variables or copy `.env.example` to `.env` and edit. See `.env.example` for detailed examples.
-
-## 🧺 Usage
-
-### Drop-in Workflow
+### 🧺 Drop-in Workflow
 ```bash
 # 1. Get .collection/ template (download from GitHub)
 # 2. Drop into any directory with content
@@ -79,6 +74,10 @@ open .collection/dashboard.html # Static HTML viewer
 - **Media**: Timeline organization, mood/genre inference, EXIF metadata
 - **Creative**: Version tracking, asset linking, format intelligence
 - **Datasets**: Schema inference, sample previews, data provenance
+
+## ⚙️ Configuration
+
+Configure LLM providers via environment variables or copy `.env.example` to `.env` and edit. See `.env.example` for detailed examples.
 
 ## Architecture
 
