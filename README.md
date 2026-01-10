@@ -8,9 +8,10 @@
 
 - **Domain-specific intelligence**: Git metadata, ID3 tags, EXIF data, citations, and semantic understanding
 - **Curation that feels magical**: Context-aware organization based on actual intent
-- **LLM-powered analysis**: Automatic categorization and rich description generation. Use any LLM provider local or cloud
+- **LLM-powered analysis**: Automatic categorization and rich description generation. 
 - **Living documentation**: Auto-generated READMEs that become real knowledge artifacts
-- **Zero-install minimal mode**: Drop `.collection/` folder anywhere, works immediately. 
+- **Zero-install minimal mode**: Drop `.collection/` folder anywhere, works immediately.
+- **Easy configuration**: Use any OpenAI compatible LLM provider; local or cloud-hosted. 
 - **Multi-format outputs**: Markdown, HTML, JSON, interactive shell scripts
 - **Collection types**: Repositories, Obsidian vaults, documents, media files, research papers, creative projects, datasets
 
