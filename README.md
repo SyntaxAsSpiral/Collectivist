@@ -52,6 +52,8 @@ python -m .collection analyze
 # Coming soon: pip install collectivist
 # collectivist init ~/my-collection --standard
 ```
+---
+
 ### 🤖 Configuration
 
 See `config.example` (YAML) and `config.example.md` (Markdown-embedded) for examples.
