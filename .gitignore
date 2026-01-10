@@ -187,3 +187,4 @@ desktop.ini
 tests/*
 !tests/test_cli.py
 zip-portable.nu
+.collection/

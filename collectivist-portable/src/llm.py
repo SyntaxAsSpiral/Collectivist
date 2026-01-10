@@ -88,7 +88,7 @@ class LLMClient:
         messages: List[Message] = None,
         temperature: float = 0.7,
         top_p: Optional[float] = None,
-        max_tokens: int = 4096
+        max_tokens: Optional[int] = None
     ) -> str:
         """
         Send chat completion request to LLM provider.
@@ -114,12 +114,15 @@ class LLMClient:
         payload = {
             "model": model,
             "messages": [{"role": msg.role, "content": msg.content} for msg in messages],
-            "temperature": temperature,
-            "max_tokens": max_tokens
+            "temperature": temperature
         }
 
         if top_p is not None:
             payload["top_p"] = top_p
+        
+        # Only include max_tokens if explicitly provided (server handles defaults)
+        if max_tokens is not None:
+            payload["max_tokens"] = max_tokens
 
         # Build headers
         headers = {"Content-Type": "application/json"}
@@ -152,20 +155,12 @@ class LLMClient:
     @classmethod
     def from_config(cls, config_path: Optional[str] = None) -> 'LLMClient':
         """
-        Create client from multi-location configuration discovery.
-        
-        Priority order (highest to lowest):
-        1. .collection/llm-config.yaml - Collection-specific configuration
-        2. .collection/llm-config.md - Markdown-embedded (Obsidian-friendly)
-        3. llm-config.md - Collection root config
-        4. ~/.collectivist/config.yaml - Global user configuration
-        5. Custom path via config_path parameter
-        
-        Supports both YAML and Markdown-embedded YAML formats.
+        Create client from .collection/llm-config.yaml ONLY.
+        No environment variables, no global configs, no discovery cancer.
         """
         config = cls._discover_config(config_path)
         
-        # Extract configuration values
+        # Extract configuration values with smart defaults
         provider_str = config.get("llm_provider", "lmstudio")
         api_key = config.get("llm_api_key")
         base_url = config.get("llm_base_url")
@@ -189,37 +184,20 @@ class LLMClient:
     @classmethod
     def _discover_config(cls, custom_path: Optional[str] = None) -> Dict[str, str]:
         """
-        Discover configuration from multiple locations.
-        Returns merged configuration dict.
+        Load configuration from .collection/llm-config.yaml ONLY.
+        No environment variables, no global configs, no discovery cancer.
         """
-        config = {}
+        config_path = Path.cwd() / ".collection" / "llm-config.yaml"
         
-        # Define search paths in priority order (lowest to highest)
-        search_paths = [
-            Path.home() / ".collectivist" / "config.yaml",  # Global user config
-            Path.cwd() / "llm-config.md",                 # Collection root config
-            Path.cwd() / ".collection" / "llm-config.md", # Markdown-embedded
-            Path.cwd() / ".collection" / "llm-config.yaml", # Collection-specific
-        ]
+        if config_path.exists():
+            try:
+                return cls._load_config_file(config_path)
+            except Exception as e:
+                print(f"Error loading config from {config_path}: {e}")
+                return {}
         
-        # Add custom path if specified (highest priority)
-        if custom_path:
-            search_paths.append(Path(custom_path))
-        
-        # Load configs in order (later configs override earlier ones)
-        for config_path in search_paths:
-            if config_path.exists():
-                try:
-                    file_config = cls._load_config_file(config_path)
-                    config.update(file_config)
-                except Exception as e:
-                    print(f"Warning: Failed to load config from {config_path}: {e}")
-        
-        # Fallback to environment variables if no config found
-        if not config:
-            config = cls._load_env_config()
-        
-        return config
+        # If no config file exists, return empty dict (will use defaults)
+        return {}
     
     @classmethod
     def _load_config_file(cls, config_path: Path) -> Dict[str, str]:
@@ -252,39 +230,8 @@ class LLMClient:
     
     @classmethod
     def _load_env_config(cls) -> Dict[str, str]:
-        """Load configuration from environment variables (fallback)."""
-        config = {}
-        
-        # Map environment variables to config keys
-        env_mappings = {
-            "LLM_PROVIDER": "llm_provider",
-            "LLM_API_KEY": "llm_api_key",
-            "LLM_BASE_URL": "llm_base_url",
-            "LLM_MODEL": "llm_model",
-        }
-        
-        for env_key, config_key in env_mappings.items():
-            value = os.getenv(env_key)
-            if value:
-                config[config_key] = value
-        
-        # Try provider-specific API keys if LLM_API_KEY not set
-        if not config.get("llm_api_key"):
-            provider_key_map = {
-                "openrouter": "OPENROUTER_API_KEY",
-                "anthropic": "ANTHROPIC_API_KEY", 
-                "openai": "OPENAI_API_KEY",
-                "lmstudio": "LMSTUDIO_API_KEY",
-                "pollinations": "POLLINATIONS_API_KEY",
-            }
-            
-            provider = config.get("llm_provider", "lmstudio").lower()
-            if provider in provider_key_map:
-                api_key = os.getenv(provider_key_map[provider])
-                if api_key:
-                    config["llm_api_key"] = api_key
-        
-        return config
+        """Environment variables are DEAD. Return empty dict."""
+        return {}
 
 
 def create_client_from_config(config_path: str = None) -> LLMClient:
@@ -314,8 +261,7 @@ def test_llm_connection(client: LLMClient, model: Optional[str] = None) -> bool:
         response = client.chat(
             model=test_model,
             messages=[Message(role="user", content="ping")],
-            temperature=0.0,
-            max_tokens=10
+            temperature=0.0
         )
         return len(response) > 0
     except Exception:
