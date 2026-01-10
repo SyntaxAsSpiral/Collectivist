@@ -24,23 +24,63 @@ class GenericScanner:
         self.exclude_patterns = config.get("scanner", {}).get("config", {}).get("exclude_patterns", [])
 
     def discover_items(self) -> List[Path]:
-        """Discover all files in the collection (generic approach)."""
+        """Discover items in the collection (conservative approach for custom types)."""
         items = []
 
+        # For custom collections, be conservative about depth
+        max_depth = self.config.get("scanner", {}).get("config", {}).get("max_depth", 2)
+
+        def should_include_path(path: Path) -> bool:
+            """Check if path should be included based on depth and patterns."""
+            # Skip excluded directories
+            if self._should_skip(path):
+                return False
+
+            # Calculate depth from collection root
+            try:
+                rel_path = path.relative_to(self.collection_path)
+                depth = len(rel_path.parts)
+            except ValueError:
+                return False
+
+            # For custom collections, be more selective
+            if depth > max_depth:
+                return False
+
+            return True
+
+        # Walk with depth limit
         for root, dirs, files in os.walk(self.collection_path):
             root_path = Path(root)
 
-            # Skip excluded directories
-            if self._should_skip(root_path):
+            if not should_include_path(root_path):
+                # Don't recurse into this directory
+                dirs[:] = []
                 continue
 
-            for file in files:
-                if file.startswith('.'):
-                    continue
+            # For custom collections, prefer directories over individual files
+            # This keeps it "close to top" as requested
+            if not files and dirs:
+                # This is a directory with subdirs but no files - treat as an item
+                items.append(root_path)
+            elif files and not any(f.endswith(('.exe', '.dll', '.so', '.dylib')) for f in files):
+                # Has files but not executables (avoid deep game file scanning)
+                # Add a few representative files, not all
+                for file in files[:3]:  # Limit to first 3 files per directory
+                    if not file.startswith('.'):
+                        file_path = root_path / file
+                        if file_path.exists():
+                            items.append(file_path)
 
-                file_path = root_path / file
-                if file_path.exists():
-                    items.append(file_path)
+        # If we found nothing, fall back to basic directory discovery
+        if not items:
+            # Just add immediate subdirectories as items
+            try:
+                for item in self.collection_path.iterdir():
+                    if item.is_dir() and not item.name.startswith('.') and not self._should_skip(item):
+                        items.append(item)
+            except Exception:
+                pass
 
         return items
 
