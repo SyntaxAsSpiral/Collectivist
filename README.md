@@ -109,31 +109,6 @@ Configure LLM providers by copying `config.example` to one of these locations an
 
 See `config.example` (YAML) and `config.example.md` (Markdown-embedded) for examples.
 
-## Architecture
-
-```
-collectivist-repo/
-├── .collection/                     # Core pipeline machinery
-│   ├── llm.py                       # LLM provider abstraction
-│   ├── plugin_interface.py          # Scanner plugin interface
-│   ├── analyzer.py                  # Stage 1: Collection type detection
-│   ├── describer.py                 # Stage 3: LLM description generation
-│   ├── readme_generator.py          # Stage 4: README generation
-│   └── pipeline.py                  # Main orchestration
-├── plugins\                         # Scanner plugins
-│   └── repository_scanner.py        # Git repository scanner
-├── web\                             # Web dashboard (future)
-├── requirements.txt
-├── .env.example
-└── README.md
-
-Your Collection\
-├── .collection\                     # Generated index data
-│   └── index.yaml                   # Item metadata + descriptions
-├── collection.yaml                  # Collection configuration
-└── README.md                        # Auto-generated documentation
-```
-
 ## Collection Configuration
 
 The `collection.yaml` file defines your collection.
@@ -168,45 +143,7 @@ scanner_config: {}
 
 **Plugin Discovery:** When you run `analyze`, Collectivist detects your collection type and automatically downloads the appropriate plugin from the remote registry.
 
-**Dotfile Exclusion:** Collectivist automatically excludes dotfiles (`.hidden`) by default to avoid system files, caches, and configuration cluttering your collections. To index dotfile directories, initialize Collectivist from within them.
-
 **Custom Plugins:** Implement the `CollectionScanner` interface from `plugins/plugin_interface.py`. Copy and modify existing plugins as templates.
-
-## LLM Configuration
-
-### Local Providers
-
-**LMStudio:**
-```bash
-LLM_PROVIDER=lmstudio
-# No API key needed, uses localhost:1234
-```
-
-**Ollama:**
-```bash
-LLM_PROVIDER=ollama
-# No API key needed, uses localhost:11434
-```
-
-### Cloud Providers
-
-**OpenRouter:**
-```bash
-LLM_PROVIDER=openrouter
-LLM_API_KEY=sk-or-v1-...
-```
-
-**Anthropic:**
-```bash
-LLM_PROVIDER=anthropic
-LLM_API_KEY=sk-ant-...
-```
-
-**OpenAI:**
-```bash
-LLM_PROVIDER=openai
-LLM_API_KEY=sk-...
-```
 
 ## Pipeline Stages
 
@@ -244,7 +181,7 @@ python -m .collection describe ~/repos 10
 
 ### Stage 4: README Generator
 
-Transforms YAML index into formatted markdown.
+Transforms YAML index into formatted output artifact (markdown, html, etc).
 
 ```bash
 python -m .collection render ~/repos

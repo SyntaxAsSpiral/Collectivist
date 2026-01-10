@@ -1,3 +1,10 @@
+---
+id: collectivist-config
+created: 2026-01-01T15:23:47.603-08:00
+modified: 2026-01-01T21:52:08.221-08:00
+status: example
+---
+
 # 💮 Collectivist Configuration
 
 This is a Markdown-embedded configuration example. You can use this format in Obsidian vaults or any Markdown file.
