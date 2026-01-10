@@ -31,10 +31,10 @@ This directory contains a template for creating new Collectivist plugins.
    cp your_plugin_name.py /path/to/test/collection/.collection/plugins/
 
    # Test detection
-   python -m .collection analyze
+   python .collection/src/__main__.py analyze
 
    # Test scanning
-   python -m .collection scan
+   python .collection/src/__main__.py scan
    ```
 
 ## Plugin Interface

@@ -111,7 +111,7 @@ class TestCLIIntegration(unittest.TestCase):
         """Set up test fixtures"""
         self.temp_dir = tempfile.mkdtemp()
         self.collection_path = Path(self.temp_dir)
-        self.cli_path = Path(__file__).parent.parent / "collection-portable" / "src" / "__main__.py"
+        self.cli_path = Path(__file__).parent.parent / "collectivist-portable" / "src" / "__main__.py"
         
     def tearDown(self):
         """Clean up test fixtures"""
@@ -244,7 +244,7 @@ class TestCLICommandOptions(unittest.TestCase):
         """Set up test fixtures"""
         self.temp_dir = tempfile.mkdtemp()
         self.collection_path = Path(self.temp_dir)
-        self.cli_path = Path(__file__).parent.parent / "collection-portable" / "src" / "__main__.py"
+        self.cli_path = Path(__file__).parent.parent / "collectivist-portable" / "src" / "__main__.py"
         
     def tearDown(self):
         """Clean up test fixtures"""

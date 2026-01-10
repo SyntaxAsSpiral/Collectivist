@@ -38,7 +38,7 @@ Configure LLM providers by renaming `llm-config.yaml.example` to `llm-config.yam
 
 ### ⚠️ Reinitialization Warning
 
-Running `python -m .collection analyze` again will **reset your collection's schema evolution and curation history**. This action cannot be undone.
+Running `python .collection/src/__main__.py analyze` again will **reset your collection's schema evolution and curation history**. This action cannot be undone.
 
 - **Use `analyze`** only for: First-time setup, major collection restructuring
 - **Use `update`** for: Regular curation loop (preserves schema evolution)
@@ -124,7 +124,7 @@ scanner_config:
 Inspects directory structure and determines collection type using LLM analysis.
 
 ```bash
-python -m .collection analyze
+python .collection/src/__main__.py analyze
 # Creates collection.yaml with detected type and suggested categories
 ```
 
@@ -134,7 +134,7 @@ Discovers items and extracts metadata using domain-specific plugins.
 
 ```bash
 # Run via pipeline (recommended)
-python -m .collection update --skip-describe --skip-render
+python .collection/src/__main__.py update --skip-describe --skip-render
 ```
 
 ### Stage 3: Describer
@@ -142,10 +142,10 @@ python -m .collection update --skip-describe --skip-render
 Generates LLM descriptions and collection overview with concurrent workers.
 
 ```bash
-python -m .collection describe
+python .collection/src/__main__.py describe
 
 # Custom worker count
-python -m .collection describe --workers 10
+python .collection/src/__main__.py describe --workers 10
 ```
 
 ### Stage 4: Renderer
@@ -153,7 +153,7 @@ python -m .collection describe --workers 10
 Transforms YAML index into formatted outputs using template-based generation.
 
 ```bash
-python -m .collection render
+python .collection/src/__main__.py render
 # Generates README.md, Collection.html, and index.json
 ```
 

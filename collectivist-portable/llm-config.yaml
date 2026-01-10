@@ -97,9 +97,9 @@ llm_model: openai/gpt-oss-20b
 # =============================================================================
 #
 # Test your LLM connection:
-# python -c "from .collection.llm import LLMClient; print('✅ Connected!' if LLMClient.from_config().test_connection() else '❌ Failed to connect')"
+# python -c "from .collection.src.llm import LLMClient; print('✅ Connected!' if LLMClient.from_config().test_connection() else '❌ Failed to connect')"
 #
 # List available models (if supported by provider):
-# python -c "from .collection.llm import LLMClient; print(LLMClient.from_config().get_available_models())"
+# python -c "from .collection.src.llm import LLMClient; print(LLMClient.from_config().get_available_models())"
 #
 # Copy this file to .collection/collectivist.yaml and customize for your setup!

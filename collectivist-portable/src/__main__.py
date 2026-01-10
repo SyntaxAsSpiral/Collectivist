@@ -222,15 +222,15 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python .collection/__main__.py analyze              # Detect collection type
-  python .collection/__main__.py scan                 # Scan for items and metadata
-  python .collection/__main__.py describe             # Generate descriptions
-  python .collection/__main__.py render               # Generate README.md
-  python .collection/__main__.py update               # Run full pipeline
+  python .collection/src/__main__.py analyze              # Detect collection type
+  python .collection/src/__main__.py scan                 # Scan for items and metadata
+  python .collection/src/__main__.py describe             # Generate descriptions
+  python .collection/src/__main__.py render               # Generate README.md
+  python .collection/src/__main__.py update               # Run full pipeline
   
-  python .collection/__main__.py analyze --force-type repositories
-  python .collection/__main__.py describe --max-workers 10
-  python .collection/__main__.py update --skip-analyze --skip-scan
+  python .collection/src/__main__.py analyze --force-type repositories
+  python .collection/src/__main__.py describe --max-workers 10
+  python .collection/src/__main__.py update --skip-analyze --skip-scan
         """
     )
     

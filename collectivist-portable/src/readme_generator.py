@@ -280,12 +280,12 @@ This Collection.md is automatically generated from `.collection/index.yaml`.
 
 **To update the index:**
 ```bash
-python -m .collection update
+python .collection/src/__main__.py update
 ```
 
 **To regenerate this Collection.md only:**
 ```bash
-python -m .collection render
+python .collection/src/__main__.py render
 ```
 
 **Last generated:** {today}
