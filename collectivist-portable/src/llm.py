@@ -155,9 +155,9 @@ class LLMClient:
         Create client from multi-location configuration discovery.
         
         Priority order (highest to lowest):
-        1. .collection/collectivist.yaml - Collection-specific configuration
-        2. .collection/collectivist.md - Markdown-embedded (Obsidian-friendly)
-        3. collectivist.md - Collection root config
+        1. .collection/llm-config.yaml - Collection-specific configuration
+        2. .collection/llm-config.md - Markdown-embedded (Obsidian-friendly)
+        3. llm-config.md - Collection root config
         4. ~/.collectivist/config.yaml - Global user configuration
         5. Custom path via config_path parameter
         
@@ -197,9 +197,9 @@ class LLMClient:
         # Define search paths in priority order (lowest to highest)
         search_paths = [
             Path.home() / ".collectivist" / "config.yaml",  # Global user config
-            Path.cwd() / "collectivist.md",                 # Collection root config
-            Path.cwd() / ".collection" / "collectivist.md", # Markdown-embedded
-            Path.cwd() / ".collection" / "collectivist.yaml", # Collection-specific
+            Path.cwd() / "llm-config.md",                 # Collection root config
+            Path.cwd() / ".collection" / "llm-config.md", # Markdown-embedded
+            Path.cwd() / ".collection" / "llm-config.yaml", # Collection-specific
         ]
         
         # Add custom path if specified (highest priority)

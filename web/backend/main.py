@@ -19,7 +19,7 @@ import uvicorn
 
 # Import our pipeline components
 import sys
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / '.index'))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'collectivist-portable' / 'src'))
 
 from pipeline import run_full_pipeline, load_collection_config, get_workflow_config_from_collection
 from analyzer import CollectionAnalyzer

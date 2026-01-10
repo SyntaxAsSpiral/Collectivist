@@ -70,7 +70,7 @@ def cmd_analyze(args):
         print("Testing LLM connection...")
         if not test_llm_connection(llm_client):
             print("[X] FATAL: Cannot reach LLM endpoint")
-            print("  Configure LLM provider in .collection/collectivist.yaml or ~/.collectivist/config.yaml")
+            print("  Configure LLM provider in .collection/llm-config.yaml or ~/.collectivist/config.yaml")
             return False
         print("[OK] LLM connection OK\n")
         

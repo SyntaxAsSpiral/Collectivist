@@ -131,7 +131,7 @@ class ConfigManager:
         try:
             # Import here to avoid circular imports
             import sys
-            sys.path.insert(0, str(Path(__file__).parent.parent.parent / '.index'))
+            sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'collectivist-portable' / 'src'))
             from llm import create_client_from_config, test_llm_connection
             
             # Update environment with current config

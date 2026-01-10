@@ -118,6 +118,5 @@ llm_provider: lmstudio
 # List available models (if supported by provider):
 # python -c "from .collection.src.llm import LLMClient; print(LLMClient.from_config().get_available_models())"
 #
-# Copy this file to .collection/collectivist.yaml and customize for your setup!
 
 ```
