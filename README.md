@@ -53,7 +53,7 @@ python -m .collection analyze
 ```
 ## Usage
 
-### Drop-in Workflow
+### Full Drop-in Workflow
 ```bash
 # 1. Get .collection/ template (download from GitHub)
 # 2. Drop into any directory with content
