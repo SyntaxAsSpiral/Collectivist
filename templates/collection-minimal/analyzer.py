@@ -16,6 +16,18 @@ from llm import LLMClient
 class CollectionAnalyzer:
     """Analyzes collections to determine type and generate config."""
 
+    # Global category legend for all collections
+    CATEGORY_LEGEND = {
+        "phext_hyperdimensional": "Phext, hyperdimensional text, multi-dimensional systems",
+        "ai_llm_agents": "AI agents, LLMs, machine learning infrastructure",
+        "terminal_ui": "Terminal UI frameworks, TUI components, CLI styling",
+        "creative_aesthetic": "Music, art, visualization, color schemes",
+        "dev_tools": "Development utilities, scaffolding, build tools",
+        "esoteric_experimental": "Esoteric programming, occult/mystical systems",
+        "system_infrastructure": "System-level tools, SSH, networking",
+        "utilities_misc": "General utilities, miscellaneous tools"
+    }
+
     # Supported collection types and their characteristics
     COLLECTION_TYPES = {
         "repositories": {
@@ -32,8 +44,7 @@ class CollectionAnalyzer:
             "description": "Academic papers, citations, and research materials",
             "indicators": [".pdf", ".bib", "citations", "abstract"],
             "categories": [
-                "machine_learning", "computer_vision", "nlp",
-                "robotics", "systems", "theory"
+                "ai_llm_agents", "dev_tools", "esoteric_experimental"
             ]
         },
         "media": {
@@ -41,7 +52,7 @@ class CollectionAnalyzer:
             "description": "Photos, videos, audio files with metadata",
             "indicators": [".jpg", ".png", ".mp3", ".mp4", ".mov"],
             "categories": [
-                "photography", "music", "videos", "artwork", "memories"
+                "creative_aesthetic", "utilities_misc"
             ]
         },
         "creative": {
@@ -49,8 +60,7 @@ class CollectionAnalyzer:
             "description": "Design projects, artwork, and creative assets",
             "indicators": ["assets", "designs", "portfolio", ".psd", ".ai"],
             "categories": [
-                "web_design", "graphic_design", "illustration",
-                "animation", "photography", "branding"
+                "creative_aesthetic", "dev_tools", "terminal_ui"
             ]
         },
         "datasets": {
@@ -58,8 +68,7 @@ class CollectionAnalyzer:
             "description": "Data files, CSVs, and structured datasets",
             "indicators": [".csv", ".json", ".parquet", ".sql", "data"],
             "categories": [
-                "machine_learning", "analytics", "research",
-                "visualization", "training_data", "benchmarks"
+                "ai_llm_agents", "dev_tools", "utilities_misc"
             ]
         }
     }
@@ -209,7 +218,17 @@ Available collection types:
 - creative: Design projects, artwork, and creative assets
 - datasets: Data files, CSVs, and structured datasets
 
-If this doesn't match any known types, you can specify "custom" and provide a custom schema. For custom collections, suggest appropriate categories based on the apparent content and purpose.
+Available categories (use these for all collections):
+- phext_hyperdimensional: Phext, hyperdimensional text, multi-dimensional systems
+- ai_llm_agents: AI agents, LLMs, machine learning infrastructure
+- terminal_ui: Terminal UI frameworks, TUI components, CLI styling
+- creative_aesthetic: Music, art, visualization, color schemes
+- dev_tools: Development utilities, scaffolding, build tools
+- esoteric_experimental: Esoteric programming, occult/mystical systems
+- system_infrastructure: System-level tools, SSH, networking
+- utilities_misc: General utilities, miscellaneous tools
+
+If this doesn't match any known types, you can specify "custom" and provide a custom schema. For custom collections, suggest appropriate categories from the available list above based on the apparent content and purpose.
 
 Return JSON:
 {
@@ -218,7 +237,7 @@ Return JSON:
   "reasoning": "brief explanation of your decision",
   "custom_name": "optional: human-readable name for custom type",
   "custom_description": "optional: description for custom type",
-  "suggested_categories": ["optional: array of category names for custom type"]
+  "suggested_categories": ["optional: array of category names from the available list"]
 }
 """
 
@@ -304,6 +323,7 @@ Return JSON:
             "metadata_fields": self._get_metadata_fields(collection_type),
             "status_checks": self._get_status_checks(collection_type),
             "categories": type_info["categories"],
+            "category_legend": self.CATEGORY_LEGEND,
             "output": {
                 "formats": ["markdown", "html", "json", "nushell"],
                 "template": "default"
@@ -369,6 +389,7 @@ Return JSON:
             "metadata_fields": custom_metadata_fields,
             "status_checks": ["file_readable"],  # Basic status check for custom types
             "categories": suggested_categories,
+            "category_legend": self.CATEGORY_LEGEND,
             "output": {
                 "formats": ["markdown", "html", "json", "nushell"],
                 "template": "default"
