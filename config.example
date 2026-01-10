@@ -57,9 +57,8 @@ llm_provider: lmstudio
 # -----------------------------------------------------------------------------
 # llm_provider: openrouter
 # llm_api_key: sk-or-v1-...
-# llm_model: meta-llama/llama-3.1-8b-instruct  # Provider/model format
-# llm_model: anthropic/claude-3-haiku
-# llm_model: openai/gpt-4o-mini
+# llm_model: anthropic/claude-4.5-haiku
+# llm_model: openai/gpt-5.1-mini
 
 # -----------------------------------------------------------------------------
 # ⚡ OPENAI (Cloud - API Key Required)
@@ -67,9 +66,7 @@ llm_provider: lmstudio
 # -----------------------------------------------------------------------------
 # llm_provider: openai
 # llm_api_key: sk-...
-# llm_model: gpt-4o-mini     # Cost-effective default
-# llm_model: gpt-4-turbo     # Most capable
-# llm_model: gpt-4o          # Latest GPT-4 Optimized
+# llm_model: gpt-5.2
 
 # -----------------------------------------------------------------------------
 # 🧠 ANTHROPIC (Cloud - API Key Required)
@@ -77,9 +74,8 @@ llm_provider: lmstudio
 # -----------------------------------------------------------------------------
 # llm_provider: anthropic
 # llm_api_key: sk-ant-...
-# llm_model: claude-3-haiku-20240307     # Fast & cheap
-# llm_model: claude-3-sonnet-20240229    # Best quality
-# llm_model: claude-3-opus-20240229      # Most capable
+# llm_model: <claude model>
+
 
 # -----------------------------------------------------------------------------
 # 🎨 POLLINATIONS (Specialized - No API Key)
@@ -92,11 +88,11 @@ llm_provider: lmstudio
 # 🧠 SMART DEFAULTS (Used when llm_model is not specified)
 # =============================================================================
 #
-# 🏠 LMStudio: local-model (whatever is loaded in LMStudio)
-# 🐳 Ollama: llama3.1 (modern, capable model)
-# ☁️ OpenRouter: meta-llama/llama-3.1-8b-instruct (good balance)
-# ⚡ OpenAI: gpt-4o-mini (cost-effective default)
-# 🧠 Anthropic: claude-3-haiku-20240307 (fast & reliable)
+# 🏠 LMStudio: local-model # whatever is loaded in LMStudio
+# 🐳 Ollama: llama3.1 # (? I dunno I don't use it 🤷‍♂️)
+# ☁️ OpenRouter: openai/gpt-oss-120b:free # free!
+# ⚡ OpenAI: gpt-5.2
+# 🧠 Anthropic: claude-4.5-sonnet
 # 🎨 Pollination: openai
 
 # =============================================================================
