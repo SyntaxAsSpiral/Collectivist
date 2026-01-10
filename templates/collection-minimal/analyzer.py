@@ -16,18 +16,6 @@ from llm import LLMClient
 class CollectionAnalyzer:
     """Analyzes collections to determine type and generate config."""
 
-    # Default category legend - users can edit this in collection.yaml
-    DEFAULT_CATEGORY_LEGEND = {
-        "phext_hyperdimensional": "Phext, hyperdimensional text, multi-dimensional systems",
-        "ai_llm_agents": "AI agents, LLMs, machine learning infrastructure",
-        "terminal_ui": "Terminal UI frameworks, TUI components, CLI styling",
-        "creative_aesthetic": "Music, art, visualization, color schemes",
-        "dev_tools": "Development utilities, scaffolding, build tools",
-        "esoteric_experimental": "Esoteric programming, occult/mystical systems",
-        "system_infrastructure": "System-level tools, SSH, networking",
-        "utilities_misc": "General utilities, miscellaneous tools"
-    }
-
     # Supported collection types and their characteristics
     COLLECTION_TYPES = {
         "repositories": {
@@ -83,43 +71,6 @@ class CollectionAnalyzer:
         self.collection_path = collection_path
         self.collection_dir = collection_dir
         self.llm_client = LLMClient.from_env()
-
-    def get_category_legend(self) -> Dict[str, str]:
-        """Get category legend, either from existing config or defaults."""
-        config_path = self.collection_dir / "collection.yaml"
-        if config_path.exists():
-            try:
-                with open(config_path, 'r', encoding='utf-8') as f:
-                    existing_config = yaml.safe_load(f)
-                    if existing_config and "category_legend" in existing_config:
-                        return existing_config["category_legend"]
-            except Exception:
-                # If we can't read existing config, fall back to defaults
-                pass
-        return self.DEFAULT_CATEGORY_LEGEND.copy()
-
-    def update_category_legend(self, new_legend: Dict[str, str]) -> None:
-        """Update the category legend in an existing collection.yaml file.
-
-        Args:
-            new_legend: Dictionary of category_key -> description mappings
-        """
-        config_path = self.collection_dir / "collection.yaml"
-        if not config_path.exists():
-            raise FileNotFoundError(f"No collection.yaml found at {config_path}")
-
-        # Load existing config
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = yaml.safe_load(f)
-
-        # Update category legend
-        config["category_legend"] = new_legend
-
-        # Save updated config
-        with open(config_path, 'w', encoding='utf-8') as f:
-            yaml.dump(config, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
-
-        print(f"✅ Updated category legend in {config_path}")
 
     def analyze(self, force_type: Optional[str] = None) -> None:
         """Analyze collection and generate configuration.
@@ -255,19 +206,9 @@ Available collection types:
 - creative: Design projects, artwork, and creative assets
 - datasets: Data files, CSVs, and structured datasets
 
-Available categories (you can suggest from these or users can add custom ones):
-- phext_hyperdimensional: Phext, hyperdimensional text, multi-dimensional systems
-- ai_llm_agents: AI agents, LLMs, machine learning infrastructure
-- terminal_ui: Terminal UI frameworks, TUI components, CLI styling
-- creative_aesthetic: Music, art, visualization, color schemes
-- dev_tools: Development utilities, scaffolding, build tools
-- esoteric_experimental: Esoteric programming, occult/mystical systems
-- system_infrastructure: System-level tools, SSH, networking
-- utilities_misc: General utilities, miscellaneous tools
+If this doesn't match any known types, specify "custom" and generate a custom schema. For ALL collections (known types or custom), analyze the content and generate 4-8 appropriate categories that would help organize this specific collection.
 
-Note: Users can edit, add, or remove categories in their collection.yaml file after analysis.
-
-If this doesn't match any known types, you can specify "custom" and provide a custom schema. For custom collections, suggest appropriate categories from the available list above based on the apparent content and purpose.
+Consider the collection's purpose, content types, and organizational needs when suggesting categories.
 
 Return JSON:
 {
@@ -276,7 +217,11 @@ Return JSON:
   "reasoning": "brief explanation of your decision",
   "custom_name": "optional: human-readable name for custom type",
   "custom_description": "optional: description for custom type",
-  "suggested_categories": ["optional: array of category names from the available list"]
+  "custom_categories": {
+    "category_key": "description of what this category represents",
+    "another_key": "description of another category",
+    ...
+  }
 }
 """
 
@@ -303,7 +248,13 @@ Return JSON:
             return {
                 "collection_type": "repositories",
                 "confidence": 0.5,
-                "reasoning": "LLM response parsing failed, defaulting to repositories"
+                "reasoning": "LLM response parsing failed, defaulting to repositories",
+                "custom_categories": {
+                    "core": "Core functionality and main features",
+                    "utilities": "Helper tools and utilities",
+                    "experimental": "Experimental or prototype code",
+                    "documentation": "Documentation and examples"
+                }
             }
 
     def _fallback_analysis(self, dir_info: Dict[str, Any]) -> tuple[str, float, str]:
@@ -361,8 +312,8 @@ Return JSON:
             },
             "metadata_fields": self._get_metadata_fields(collection_type),
             "status_checks": self._get_status_checks(collection_type),
-            "categories": type_info["categories"],
-            "category_legend": self.get_category_legend(),
+            "categories": list(llm_response.get("custom_categories", {}).keys()) if llm_response else list(type_info["categories"]),
+            "category_legend": llm_response.get("custom_categories", {}) if llm_response else {cat: f"Category for {cat}" for cat in type_info["categories"]},
             "output": {
                 "formats": ["markdown", "html", "json", "nushell"],
                 "template": "default"
@@ -427,8 +378,8 @@ Return JSON:
             },
             "metadata_fields": custom_metadata_fields,
             "status_checks": ["file_readable"],  # Basic status check for custom types
-            "categories": suggested_categories,
-            "category_legend": self.get_category_legend(),
+            "categories": list(llm_response.get("custom_categories", {}).keys()) if llm_response else suggested_categories,
+            "category_legend": llm_response.get("custom_categories", {}) if llm_response else {cat: f"Custom category: {cat}" for cat in suggested_categories},
             "output": {
                 "formats": ["markdown", "html", "json", "nushell"],
                 "template": "default"
