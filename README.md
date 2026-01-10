@@ -157,13 +157,17 @@ scanner_config: {}
 
 ## 🔌 Plugin Architecture
 
-**Built-in Plugins:**
+**Automatic Plugin Management:** Collectivist automatically downloads and installs plugins as needed during first-run analysis. No manual plugin installation required!
+
+**Available Plugins:**
 - **repositories** - Git repository collections with metadata extraction and status tracking
 - **obsidian** - Obsidian vault collections with rich knowledge graph metadata
 - **documents** - Document collections with metadata extraction from PDFs, Office docs, and text files
 - **media** - Media collections with metadata extraction from images, audio, and video files
 
-**Creating Custom Plugins:** Implement the `CollectionScanner` interface from `plugins/plugin_interface.py`. Copy and modify existing plugins as templates.
+**Plugin Discovery:** When you run `analyze`, Collectivist detects your collection type and automatically downloads the appropriate plugin from the remote registry.
+
+**Custom Plugins:** Implement the `CollectionScanner` interface from `plugins/plugin_interface.py`. Copy and modify existing plugins as templates.
 
 ## LLM Configuration
 

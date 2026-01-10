@@ -1,0 +1,43 @@
+{
+  "version": "1.0.0",
+  "description": "Collectivist Plugin Registry",
+  "last_updated": "2026-01-09",
+  "plugins": {
+    "repositories": {
+      "version": "1.0.0",
+      "description": "Git repository collections with metadata extraction and status tracking",
+      "url": "https://raw.githubusercontent.com/SyntaxAsSpiral/Collectivist/main/plugins/repositories.py",
+      "sha256": "",
+      "categories": ["dev_tools", "system_infrastructure", "utilities_misc"],
+      "file_types": ["dir"],
+      "detection_threshold": 3
+    },
+    "obsidian": {
+      "version": "1.0.0",
+      "description": "Obsidian vault collections with rich knowledge graph metadata",
+      "url": "https://raw.githubusercontent.com/SyntaxAsSpiral/Collectivist/main/plugins/obsidian.py",
+      "sha256": "",
+      "categories": ["knowledge_base", "personal_notes", "research_notes", "project_docs", "creative_writing", "learning_notes"],
+      "file_types": ["file"],
+      "detection_threshold": 3
+    },
+    "documents": {
+      "version": "1.0.0",
+      "description": "Document collections with metadata extraction from PDFs, Office docs, and text files",
+      "url": "https://raw.githubusercontent.com/SyntaxAsSpiral/Collectivist/main/plugins/documents.py",
+      "sha256": "",
+      "categories": ["research_papers", "business_docs", "legal_documents", "educational_materials", "technical_docs", "personal_docs", "reports_presentations"],
+      "file_types": ["file"],
+      "detection_threshold": 5
+    },
+    "media": {
+      "version": "1.0.0",
+      "description": "Media collections with metadata extraction from images, audio, and video files",
+      "url": "https://raw.githubusercontent.com/SyntaxAsSpiral/Collectivist/main/plugins/media.py",
+      "sha256": "",
+      "categories": ["photography", "music_audio", "videos_films", "art_design", "screenshots", "podcasts", "presentations"],
+      "file_types": ["file"],
+      "detection_threshold": 10
+    }
+  }
+}
