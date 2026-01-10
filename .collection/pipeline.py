@@ -170,14 +170,14 @@ def run_full_pipeline(
         workflow_mode: Workflow mode - "manual", "scheduled", or "organic"
     """
     collection_path = collection_path.resolve()
-    index_dir = collection_path / '.index'
+    index_dir = collection_path / '.collection'
     index_path = index_dir / 'collection-index.yaml'
     config_path = collection_path / 'collection.yaml'
 
     # Use console emitter if none provided (backward compatibility)
     emitter = event_emitter or create_console_emitter()
 
-    # Create .index directory if needed
+    # Create .collection directory if needed
     index_dir.mkdir(exist_ok=True)
 
     if not event_emitter:  # Only print header for console mode

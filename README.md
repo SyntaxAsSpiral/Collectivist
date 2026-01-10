@@ -1,25 +1,45 @@
 # Collectivist
 
-Universal collection indexing system with LLM-generated descriptions, category tagging, and advanced scheduling + curation options.
+**AI-powered collection curator** for intentional collections. Transforms semantically coherent hoards (repositories, research papers, music libraries, photo archives, creative projects) into living documentation substrates with LLM-powered organization and curation.
+
+**Not a general file organizer.** Collectivist shines on collections you care about enough to give them structure and meaning. For Downloads auto-sorting, check out llama-fs or Local-File-Organizer.
 
 ## Overview
 
-Collectivist is a three-stage pipeline for cataloging and documenting collections of any type: repositories, media files, documents, music, datasets, and more. It uses AI to understand your collections and generate beautiful, searchable documentation.
+Collectivist is a three-stage pipeline for **intentional collections** - semantically coherent hoards where each item matters. Whether it's your repository archive, research paper collection, music library, or creative project hoard, Collectivist uses AI to understand your collection's domain and generate beautiful, searchable documentation that evolves with your curation.
+
+**Collection Types Supported:**
+- **Repository Collections** - Git-aware metadata, commit summaries, category taxonomy
+- **Research Paper Hoards** - Citation extraction, topic clustering, reading status
+- **Media Libraries** - Timeline-aware organization, mood/genre inference
+- **Creative Project Folders** - Version tracking, mood boards, linked assets
+- **Dataset Collections** - Schema inference, sample previews, provenance notes
+
+## What Makes Collectivist Different
+
+**Collection-First Philosophy:** Unlike general file organizers that chase the dream of "never think about files again," Collectivist focuses on **intentional collections** - semantically coherent groups where each item carries meaning.
+
+**Why This Matters:**
+- **Depth over breadth** - Domain-specific intelligence (git metadata, ID3 tags, EXIF data) instead of generic rules
+- **Pattern learning that works** - Structure carries strong semantic signal for meaningful suggestions
+- **Documentation as artifact** - READMEs become real knowledge repositories, not directory listings
+- **Curation feels magical** - Suggestions based on actual organizational intent
 
 **Three-Stage Pipeline:**
 1. **Analyzer** - LLM inspects directory structure, determines collection type, generates config
-2. **Scanner** - Domain-specific plugins discover items and extract metadata
+2. **Scanner** - Domain-specific plugins discover items and extract rich metadata
 3. **Describer** - LLM generates descriptions and assigns categories using concurrent workers
 
 ## Features
 
-- **Plugin Architecture** - Extensible scanner system for different collection types
+- **Collection-First Design** - Optimized for intentional, semantically coherent collections
+- **Domain-Specific Intelligence** - Rich metadata extraction (git status, ID3 tags, EXIF, citations, etc.)
 - **LLM Provider Abstraction** - Supports local (LMStudio, Ollama) and cloud (OpenRouter, Anthropic, OpenAI, Pollinations) providers
 - **Concurrent Processing** - ThreadPoolExecutor with configurable workers for fast description generation
-- **Incremental Saves** - Resumable operation with saves after each success
-- **Category Taxonomy** - Domain-specific category assignment by LLM
-- **Auto-generated README** - Beautiful markdown documentation with tables and categorized sections
-- **Git Status Tracking** - Repository scanner tracks fetch status and supports auto-pull
+- **Pattern Learning** - Learns your organizational preferences from structure and evolves suggestions
+- **Living Documentation** - Auto-generated READMEs that become real knowledge artifacts
+- **Self-Healing Curation** - Detects moves, additions, deletions and adapts gracefully
+- **Plugin Architecture** - Extensible scanner system for new collection types
 - **Deterministic** - Same filesystem + config = same output
 
 ## Installation
@@ -35,23 +55,36 @@ cp .env.example .env
 
 ## Quick Start
 
+**First Question: What kind of collection is this?**
+Collectivist asks this upfront to select the right domain-specific scanner and category taxonomy.
+
 ```bash
-# Index a repository collection
-python .index/pipeline.py C:\Users\synta\repos
+# Drop .collection/ folder into your collection directory
+# For a repository collection:
+cd ~/my-repos
+python -m .collection analyze  # LLM detects "repositories" type
+python -m .collection update   # Full pipeline with git-aware scanning
 
-# Force collection type (skip LLM detection)
-python .index/pipeline.py C:\Users\synta\repos --force-type repositories
+# For research papers:
+cd ~/research-papers
+python -m .collection analyze  # Detects document collection
+python -m .collection update   # Citation extraction, topic clustering
 
-# Skip specific stages
-python .index/pipeline.py C:\Users\synta\repos --skip-describe  # Skip LLM descriptions
-python .index/pipeline.py C:\Users\synta\repos --skip-scan      # Regenerate README only
+# Force collection type if detection is off
+python -m .collection update --force-type repositories
+
+# View beautiful CLI dashboard
+nu .collection/view.nu
+
+# Open static HTML dashboard
+open .collection/dashboard.html
 ```
 
 ## Architecture
 
 ```
 C:\Users\synta.ZK-ZRRH\.dev\collectivist\
-├── .index\                          # Core pipeline machinery
+├── .collection\                     # Core pipeline machinery
 │   ├── llm.py                       # LLM provider abstraction
 │   ├── plugin_interface.py          # Scanner plugin interface
 │   ├── analyzer.py                  # Stage 1: Collection type detection
@@ -66,8 +99,8 @@ C:\Users\synta.ZK-ZRRH\.dev\collectivist\
 └── README.md
 
 Your Collection\
-├── .index\                          # Generated index data
-│   └── collection-index.yaml        # Item metadata + descriptions
+├── .collection\                     # Generated index data
+│   └── index.yaml                   # Item metadata + descriptions
 ├── collection.yaml                  # Collection configuration
 └── README.md                        # Auto-generated documentation
 ```
@@ -192,11 +225,11 @@ LLM_API_KEY=sk-...
 Inspects directory structure and determines collection type.
 
 ```bash
-python .index/analyzer.py C:\Users\synta\repos
+python .collection/analyzer.py C:\Users\synta\repos
 # Creates collection.yaml
 
 # Force specific type
-python .index/analyzer.py C:\Users\synta\repos repositories
+python .collection/analyzer.py C:\Users\synta\repos repositories
 ```
 
 ### Stage 2: Scanner
@@ -205,7 +238,7 @@ Discovers items and extracts metadata using domain-specific plugin.
 
 ```bash
 # Run via pipeline (recommended)
-python .index/pipeline.py C:\Users\synta\repos --skip-describe --skip-readme
+python -m .collection update C:\Users\synta\repos --skip-describe --skip-readme
 ```
 
 ### Stage 3: Describer
@@ -213,10 +246,10 @@ python .index/pipeline.py C:\Users\synta\repos --skip-describe --skip-readme
 Generates LLM descriptions with concurrent workers.
 
 ```bash
-python .index/describer.py C:\Users\synta\repos\.index\collection-index.yaml
+python -m .collection describe C:\Users\synta\repos
 
 # Custom worker count
-python .index/describer.py C:\Users\synta\repos\.index\collection-index.yaml 10
+python -m .collection describe C:\Users\synta\repos 10
 ```
 
 ### Stage 4: README Generator
@@ -224,7 +257,7 @@ python .index/describer.py C:\Users\synta\repos\.index\collection-index.yaml 10
 Transforms YAML index into formatted markdown.
 
 ```bash
-python .index/readme_generator.py C:\Users\synta\repos
+python -m .collection render C:\Users\synta\repos
 ```
 
 ## Development
@@ -233,19 +266,32 @@ python .index/readme_generator.py C:\Users\synta\repos
 
 ```bash
 # Test with force-type to skip LLM detection
-python .index/pipeline.py C:\Users\synta.ZK-ZRRH\.dev\.repos --force-type repositories
+python -m .collection update C:\Users\synta.ZK-ZRRH\.dev\.repos --force-type repositories
 
 # Validate output matches original system
 diff C:\Users\synta.ZK-ZRRH\.dev\.repos\README.md <expected>
 ```
 
+## What Collectivist Is Not
+
+**Not a general file organizer.** Collectivist is not designed for:
+- Downloads folders with random files
+- Desktop cleanup of miscellaneous documents
+- Automatic organization of entire filesystems
+- Handling infinite edge cases (temp files, caches, logs)
+
+**For general file organization:** Check out llama-fs, Local-File-Organizer, or Sparkle.
+
+**What Collectivist excels at:** Collections you care about enough to give them structure and meaning.
+
 ## Technical Doctrine
 
+- **Collection-first constraint**: Focus enables depth over breadth
 - **Fast-fail methodology**: LLM unreachable → exit immediately
 - **No mock data**: Real metadata only, `null` for missing values
 - **Deterministic**: Same filesystem + config = same output
 - **Context compilation**: YAML → README transformation, not raw dumps
-- **Anagoglyph recursion**: `.index\` hidden infrastructure layers
+- **Anagoglyph recursion**: `.collection\` hidden infrastructure layers
 - **Leave no trace**: Clean final-state, no legacy artifacts
 - **Incremental saves**: Resumable operation after each success
 

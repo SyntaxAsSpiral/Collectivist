@@ -361,7 +361,7 @@ if __name__ == '__main__':
 
     if len(sys.argv) < 2:
         print("Usage: python describer.py <index_path> [max_workers]")
-        print("\nExample: python describer.py C:\\Users\\synta\\repos\\.index\\collection-index.yaml")
+        print("\nExample: python describer.py C:\\Users\\synta\\repos\\.collection\\index.yaml")
         sys.exit(1)
 
     index_path = sys.argv[1]

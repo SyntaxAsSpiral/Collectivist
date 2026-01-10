@@ -46,7 +46,7 @@ class ContentProcessor:
 
         # Scan for new files and directories
         for item in collection_path.rglob('*'):
-            # Skip hidden files and .index directory
+            # Skip hidden files and .collection directory
             if any(part.startswith('.') for part in item.parts):
                 continue
                 
@@ -186,7 +186,7 @@ class ContentProcessor:
 
         try:
             # Load existing index to understand current categorization
-            index_path = collection_root / '.index' / 'collection-index.yaml'
+            index_path = collection_root / '.collection' / 'index.yaml'
             if index_path.exists():
                 with open(index_path, 'r', encoding='utf-8') as f:
                     index_data = yaml.safe_load(f) or []

@@ -1,0 +1,5 @@
+# Minimal dependencies for Collectivist
+pyyaml>=6.0
+requests>=2.31.0
+ruamel.yaml>=0.17.0
+pathlib2>=2.3.0  # For older Python versions

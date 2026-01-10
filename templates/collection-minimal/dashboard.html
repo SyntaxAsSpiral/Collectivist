@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collectivist Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .filter-btn {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        .filter-btn:hover {
+            background: #e9ecef;
+        }
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .search-box {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .items {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }
+        .item:hover {
+            background: #f8f9fa;
+        }
+        .item:last-child {
+            border-bottom: none;
+        }
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .item-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
+        }
+        .item-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-up-to-date { background: #d4edda; color: #155724; }
+        .status-updates-available { background: #fff3cd; color: #856404; }
+        .status-modified { background: #f8d7da; color: #721c24; }
+        .status-ahead-of-remote { background: #cce5ff; color: #004085; }
+        .status-no-remote { background: #f8f9fa; color: #6c757d; }
+        .status-error { background: #f8d7da; color: #721c24; }
+        .status-unknown { background: #e2e3e5; color: #383d41; }
+        .status-not-a-repo { background: #e2e3e5; color: #383d41; }
+        .item-description {
+            color: #666;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .item-meta {
+            font-size: 14px;
+            color: #888;
+        }
+        .item-category {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+        .no-items {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+        .no-data {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Collectivist Dashboard</h1>
+            <p>AI-powered collection curator</p>
+            <div id="collection-info">
+                <div class="loading">Loading collection data...</div>
+            </div>
+        </div>
+
+        <div id="content" style="display: none;">
+            <div class="stats" id="stats"></div>
+
+            <div class="filters">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">All Items</button>
+                </div>
+                <input type="text" class="search-box" placeholder="Search items..." id="search">
+            </div>
+
+            <div class="items" id="items"></div>
+        </div>
+
+        <div id="no-data" class="no-data" style="display: none;">
+            <h3>No Collection Data Found</h3>
+            <p>This dashboard displays your collection data. To get started:</p>
+            <ol>
+                <li>Make sure you're in a directory with a <code>.collection/</code> folder</li>
+                <li>Run <code>python -m .collection analyze</code> to analyze your collection</li>
+                <li>Run <code>python -m .collection update</code> to scan and describe items</li>
+                <li>Refresh this page to see your collection</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Generated by <strong>Collectivist</strong> - AI-powered collection curator</p>
+    </div>
+
+    <script>
+        // Global variables
+        let collectionData = null;
+        let filteredItems = [];
+        let currentFilter = 'all';
+        let searchQuery = '';
+
+        // Load collection data
+        async function loadCollectionData() {
+            try {
+                // Try to load from index.yaml (relative to dashboard.html)
+                const response = await fetch('./.collection/index.yaml');
+                if (!response.ok) {
+                    throw new Error('No collection data found');
+                }
+
+                const yamlText = await response.text();
+
+                // Simple YAML to JSON conversion (basic implementation)
+                collectionData = parseYamlToJson(yamlText);
+
+                renderDashboard();
+            } catch (error) {
+                console.log('No collection data:', error);
+                showNoData();
+            }
+        }
+
+        function parseYamlToJson(yamlText) {
+            // Very basic YAML parser for our use case
+            const lines = yamlText.split('\n');
+            const data = {};
+            let currentSection = data;
+            let indentLevel = 0;
+            const indentStack = [data];
+
+            for (let line of lines) {
+                line = line.trim();
+                if (!line || line.startsWith('#')) continue;
+
+                const indent = yamlText.split('\n')[lines.indexOf(line)]?.length - line.length || 0;
+
+                // Handle section headers
+                if (line.endsWith(':')) {
+                    const key = line.slice(0, -1);
+                    const newSection = {};
+                    currentSection[key] = newSection;
+                    currentSection = newSection;
+                    continue;
+                }
+
+                // Handle key-value pairs
+                if (line.includes(':')) {
+                    const [key, ...valueParts] = line.split(':');
+                    let value = valueParts.join(':').trim();
+
+                    // Remove quotes if present
+                    if ((value.startsWith('"') && value.endsWith('"')) ||
+                        (value.startsWith("'") && value.endsWith("'"))) {
+                        value = value.slice(1, -1);
+                    }
+
+                    // Try to parse as number or boolean
+                    if (value === 'true') value = true;
+                    else if (value === 'false') value = false;
+                    else if (!isNaN(value) && value !== '') value = Number(value);
+
+                    currentSection[key.trim()] = value;
+                }
+            }
+
+            return data;
+        }
+
+        function renderDashboard() {
+            if (!collectionData || !collectionData.items) {
+                showNoData();
+                return;
+            }
+
+            document.getElementById('collection-info').innerHTML = `
+                <h2>${collectionData.collection_id || 'Collection'}</h2>
+                <p>${collectionData.items.length} items • Domain: ${collectionData.domain || 'unknown'}</p>
+                <p>Last scan: ${collectionData.last_scan || 'Unknown'}</p>
+            `;
+
+            renderStats();
+            renderFilters();
+            filterAndRenderItems();
+
+            document.getElementById('content').style.display = 'block';
+        }
+
+        function renderStats() {
+            const items = collectionData.items;
+            const statsContainer = document.getElementById('stats');
+
+            // Calculate stats
+            const totalItems = items.length;
+            const categories = new Set(items.map(item => item.category).filter(Boolean));
+            const statusCounts = {};
+            items.forEach(item => {
+                const status = item.status?.git_status || 'unknown';
+                statusCounts[status] = (statusCounts[status] || 0) + 1;
+            });
+
+            const upToDate = statusCounts.up_to_date || 0;
+
+            statsContainer.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${totalItems}</div>
+                    <div>Total Items</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${categories.size}</div>
+                    <div>Categories</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${upToDate}</div>
+                    <div>Up to Date</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${totalItems - upToDate}</div>
+                    <div>Need Attention</div>
+                </div>
+            `;
+        }
+
+        function renderFilters() {
+            const items = collectionData.items;
+            const categories = [...new Set(items.map(item => item.category).filter(Boolean))];
+            const filterButtons = document.querySelector('.filter-buttons');
+
+            // Clear existing buttons (keep "All Items")
+            const allButton = filterButtons.querySelector('[data-filter="all"]');
+            filterButtons.innerHTML = '';
+            filterButtons.appendChild(allButton);
+
+            // Add category buttons
+            categories.sort().forEach(category => {
+                const button = document.createElement('button');
+                button.className = 'filter-btn';
+                button.dataset.filter = category;
+                button.textContent = category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                button.addEventListener('click', () => setFilter(category));
+                filterButtons.appendChild(button);
+            });
+
+            // Add search functionality
+            const searchBox = document.getElementById('search');
+            searchBox.addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase();
+                filterAndRenderItems();
+            });
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+
+            // Update button states
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filter === filter);
+            });
+
+            filterAndRenderItems();
+        }
+
+        function filterAndRenderItems() {
+            let items = collectionData.items;
+
+            // Apply category filter
+            if (currentFilter !== 'all') {
+                items = items.filter(item => item.category === currentFilter);
+            }
+
+            // Apply search filter
+            if (searchQuery) {
+                items = items.filter(item =>
+                    (item.name || '').toLowerCase().includes(searchQuery) ||
+                    (item.description || '').toLowerCase().includes(searchQuery) ||
+                    (item.category || '').toLowerCase().includes(searchQuery)
+                );
+            }
+
+            filteredItems = items;
+            renderItems(items);
+        }
+
+        function renderItems(items) {
+            const container = document.getElementById('items');
+
+            if (items.length === 0) {
+                container.innerHTML = '<div class="no-items">No items match your current filters.</div>';
+                return;
+            }
+
+            container.innerHTML = items.map(item => {
+                const status = item.status?.git_status || 'unknown';
+                const statusClass = `status-${status.replace(/_/g, '-')}`;
+                const statusText = status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+                return `
+                    <div class="item">
+                        <div class="item-header">
+                            <div class="item-name">${item.name || 'Unknown'}</div>
+                            <div class="item-status ${statusClass}">${statusText}</div>
+                        </div>
+                        <div class="item-description">${item.description || 'No description available'}</div>
+                        <div class="item-meta">
+                            <span class="item-category">${item.category || 'Uncategorized'}</span>
+                            Path: ${item.path || 'Unknown'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showNoData() {
+            document.getElementById('no-data').style.display = 'block';
+        }
+
+        // Initialize
+        loadCollectionData();
+    </script>
+</body>
+</html>

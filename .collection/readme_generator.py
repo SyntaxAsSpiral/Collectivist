@@ -184,16 +184,16 @@ def generate_readme(
     today = datetime.now().strftime("%Y-%m-%d")
     footer = f"""## Index Maintenance
 
-This README is automatically generated from `.index/collection-index.yaml`.
+This README is automatically generated from `.collection/index.yaml`.
 
 **To update the index:**
 ```bash
-python .index/pipeline.py .
+python -m .collection update
 ```
 
 **To regenerate this README only:**
 ```bash
-python .index/readme_generator.py
+python -m .collection render
 ```
 
 **Last generated:** {today}
@@ -225,7 +225,7 @@ def main():
         sys.exit(1)
 
     collection_path = Path(sys.argv[1]).resolve()
-    index_path = collection_path / '.index' / 'collection-index.yaml'
+    index_path = collection_path / '.collection' / 'index.yaml'
     config_path = collection_path / 'collection.yaml'
 
     # Load config
