@@ -11,7 +11,7 @@
 - **Living documentation**: Auto-generated READMEs that become real knowledge artifacts
 - **Zero-install minimal mode**: Drop `.collection/` folder anywhere, works immediately
 - **Multi-format outputs**: Markdown, HTML, JSON, interactive Nushell scripts
-- **Collection types**: Repositories, research papers, media libraries, creative projects, datasets
+- **Collection types**: Repositories, Obsidian vaults, research papers, media libraries, creative projects, datasets
 
 ## Why This Approach?
 
