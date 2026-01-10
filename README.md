@@ -34,6 +34,11 @@ cd ~/my-repos
 ```bash
 python -m .collection analyze
 ```
+Operating System,Installation Command
+Ubuntu / Debian,sudo apt update && sudo apt install python3
+macOS (via Homebrew),brew install python
+Windows (via Winget),winget install Python.Python.3.12
+Fedora,sudo dnf install python3
 
 ### 🎮 Standard Installation (Interactive UI + Curation Loop + Scheduling + Automation)
 ```bash
