@@ -17,17 +17,20 @@
 ## Installation
 
 ### 🧺 Minimal Zero-Install (Analyze + Index + Describe)
+1) Clone repo
+2) Copy .collection/ folder to your collection you want curated.
+or
 ```bash
 # Download .collection/ template from releases
 # TODO: Update with actual release URL when first release is created
 wget https://github.com/SyntaxAsSpiral/collectivist/releases/download/v0.1.0/collection-minimal.zip
 unzip collection-minimal.zip
-
 # Drop into any collection directory
 cp -r .collection ~/my-repos/
 cd ~/my-repos
-
-# Start using immediately
+```
+3) Start using immediately
+```bash
 python -m .collection analyze
 ```
 
@@ -50,6 +53,7 @@ Configure LLM providers by copying `config.example` to one of these locations an
 ## Usage
 
 ### Full Drop-in Workflow
+
 ```bash
 # 1. Get .collection/ template (download from GitHub)
 # 2. Drop into any directory with content
