@@ -76,7 +76,6 @@ llm_provider: lmstudio
 # llm_api_key: sk-ant-...
 # llm_model: <claude model>
 
-
 # -----------------------------------------------------------------------------
 # 🎨 POLLINATIONS (Specialized - No API Key)
 # Image generation focused, experimental
