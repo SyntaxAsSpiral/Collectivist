@@ -167,8 +167,6 @@ scanner_config: {}
 
 **Plugin Discovery:** When you run `analyze`, Collectivist detects your collection type and automatically downloads the appropriate plugin from the remote registry.
 
-**Dotfile Exclusion:** Collectivist automatically excludes dotfiles (`.hidden`) by default to avoid system files, caches, and configuration cluttering your collections. To index dotfile directories, initialize Collectivist from within them.
-
 **Custom Plugins:** Implement the `CollectionScanner` interface from `plugins/plugin_interface.py`. Copy and modify existing plugins as templates.
 
 ## LLM Configuration
