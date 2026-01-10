@@ -1,4 +1,4 @@
-# ◈ Collectivist
+# 💮 Collectivist
 
 **AI-powered collection curator** for intentional collections. Transforms semantically coherent hoards into living documentation substrates with LLM-powered organization and curation.
 
