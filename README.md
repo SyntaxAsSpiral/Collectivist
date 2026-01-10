@@ -4,7 +4,7 @@
 
 **Not a general file organizer.** Collectivist shines on collections you care about enough to give them structure and meaning.
 
-## ⚡ Features
+## 🌱 Features
 
 - **Domain-specific intelligence**: Git metadata, ID3 tags, EXIF data, citations, and semantic understanding
 - **LLM-powered analysis**: Automatic categorization and rich description generation
