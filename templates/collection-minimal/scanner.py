@@ -64,7 +64,11 @@ class CollectionScanner:
         )
 
     def scan(self) -> None:
-        """Scan collection for items and extract metadata."""
+        """Scan collection for items and extract metadata.
+
+        Completely rewrites index.yaml each time to detect collection changes.
+        Sets description/category fields to None - filled by describer phase.
+        """
         print(f"🔍 Scanning {self.config.get('domain', 'unknown')} collection...")
 
         # Discover items
@@ -84,11 +88,11 @@ class CollectionScanner:
                     "path": str(item_path.relative_to(self.collection_path)),
                     "name": item_path.name,
                     "type": "dir" if item_path.is_dir() else "file",
-                    "metadata": {**metadata, **domain_metadata},
+                    "metadata": {**metadata, **domain_metadata},  # Complete metadata from indexer
                     "status": status,
                     "content_sample": content_sample,
-                    "description": None,  # Will be filled by describer
-                    "category": None      # Will be filled by describer
+                    "description": None,  # Blank - filled by expensive LLM describer phase
+                    "category": None      # Blank - filled by expensive LLM describer phase
                 }
 
                 enriched_items.append(item)

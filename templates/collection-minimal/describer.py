@@ -41,7 +41,11 @@ class CollectionDescriber:
         self.categories = self.config.get("categories", [])
 
     def describe(self) -> None:
-        """Generate descriptions and categories for items needing them."""
+        """Generate descriptions and categories for items needing them.
+
+        Preserves existing descriptions/categories, only generates for new/missing items.
+        This optimization avoids re-describing the entire collection on every run.
+        """
         # Load current index
         index_path = self.collection_dir / "index.yaml"
         if not index_path.exists():
@@ -53,7 +57,8 @@ class CollectionDescriber:
 
         items = index_data.get("items", [])
 
-        # Find items needing descriptions
+        # Find items needing descriptions (optimization: preserve existing ones)
+        # This prevents re-describing entire collection on every run
         items_to_describe = []
         for item in items:
             if not item.get("description") or not item.get("category"):
