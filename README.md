@@ -171,34 +171,6 @@ Transforms YAML index into formatted output artifact (markdown, html, etc).
 python -m .collection render ~/repos
 ```
 
-## Development
-
-**Testing with existing .repos collection:**
-
-```bash
-# Test with force-type to skip LLM detection
-python -m .collection update ~/repos --force-type repositories
-
-# Validate output matches original system
-diff ~/repos/README.md <expected>
-```
-
-## 🚫 What Collectivist Is Not
-
-**Not a general file organizer.** For Downloads auto-sorting, check out llama-fs or Local-File-Organizer.
-
-Collectivist excels at **intentional collections** you care about enough to give structure and meaning.
-
-## 🏛️ Architecture
-
-- **Collection-first design**: Intentional collections enable domain depth
-- **Two-tier system**: Minimal (indexing + descriptions) + Standard (ongoing curation)
-- **Hybrid Python/Nushell**: Beautiful CLI experiences with data processing power
-- **Zero-install minimal mode**: Drop folder, works immediately
-- **LLM provider abstraction**: Local + cloud with unified interface
-- **Plugin architecture**: Extensible scanners for new collection types
-- **Deterministic outputs**: Same input → same beautiful results
-
 ## 📅 Roadmap
 
 ### Complete: Minimal Level MVP
