@@ -7,7 +7,7 @@
 ## ⚡ Features
 
 - **Domain-specific intelligence**: Git metadata, ID3 tags, EXIF data, citations, and semantic understanding
-- **LLM-powered curation**: Automatic categorization, description generation, and pattern learning
+- **LLM-powered analysis**: Automatic categorization and rich description generation
 - **Living documentation**: Auto-generated READMEs that become real knowledge artifacts
 - **Zero-install minimal mode**: Drop `.collection/` folder anywhere, works immediately
 - **Multi-format outputs**: Markdown, HTML, JSON, interactive Nushell scripts
@@ -18,7 +18,7 @@
 General file organizers chase "never think about files again" but usually end up with mediocre generic sorting. Collectivist focuses on **intentional collections** where each item matters, enabling:
 
 - **Depth over breadth**: Domain-specific intelligence instead of one-size-fits-all rules
-- **Pattern learning that works**: Structure carries semantic meaning for smart suggestions
+- **Curation system**: Ongoing pattern learning and intelligent reorganization (standard level)
 - **Documentation as artifact**: READMEs become real knowledge repositories
 - **Curation that feels magical**: Context-aware organization based on actual intent
 
@@ -276,6 +276,7 @@ Collectivist excels at **intentional collections** you care about enough to give
 ## 🏗️ Architecture
 
 - **Collection-first design**: Intentional collections enable domain depth
+- **Two-tier system**: Minimal (indexing + descriptions) + Standard (ongoing curation)
 - **Hybrid Python/Nushell**: Beautiful CLI experiences with data processing power
 - **Zero-install minimal mode**: Drop folder, works immediately
 - **LLM provider abstraction**: Local + cloud with unified interface
@@ -291,10 +292,11 @@ Collectivist excels at **intentional collections** you care about enough to give
 - **Hybrid Python/Nushell outputs** - Beautiful CLI + multiple formats (MD, HTML, JSON)
 - **Self-contained architecture** - All code + deps in one folder
 
-### 🔄 Next: Standard Level (Interactive UI)
-- **Vite + Vue frontend** - Modern web interface for curation
+### 🔄 Next: Standard Level (Interactive Curation)
+- **Vite + Vue frontend** - Modern web interface for ongoing curation
 - **FastAPI backend** - REST API + WebSocket real-time updates
-- **Advanced curation features** - Visual organization suggestions
+- **Curation scheduler** - Ongoing pattern learning and reorganization
+- **Intelligent suggestions** - Context-aware organization recommendations
 - **LLM provider management** - Easy configuration of models/providers
 
 ### 🚀 Future: Package Manager & Extensions
