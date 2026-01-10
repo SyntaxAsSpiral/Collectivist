@@ -120,15 +120,6 @@ scanner_config: {}
 
 **Custom Plugins:** Implement the `CollectionScanner` interface. Copy the template from `plugins/template/plugin_template.py` and modify existing plugins as references.
 
-## Why This Approach?
-
-General file organizers chase "never think about files again" but usually end up with mediocre generic sorting. Collectivist focuses on **intentional collections** where each item matters, enabling:
-
-- **Depth over breadth**: Domain-specific intelligence instead of one-size-fits-all rules
-- **Curation system**: Ongoing pattern learning and intelligent reorganization (standard level)
-- **Deterministic outputs**: Pattern learning is persisted explicitly in schema and index files, preserving deterministic outputs given the same learned state
-- **Documentation as artifact**: READMEs become real knowledge repositories
-
 ## 🔗 Workflow Stages
 
 ### Stage 1: Analyzer
@@ -170,6 +161,15 @@ Transforms YAML index into formatted output artifact (markdown, html, etc).
 ```bash
 python -m .collection render ~/repos
 ```
+
+## Why This Approach?
+
+General file organizers chase "never think about files again" but usually end up with mediocre generic sorting. Collectivist focuses on **intentional collections** where each item matters, enabling:
+
+- **Depth over breadth**: Domain-specific intelligence instead of one-size-fits-all rules
+- **Curation system**: Ongoing pattern learning and intelligent reorganization (standard level)
+- **Deterministic outputs**: Pattern learning is persisted explicitly in schema and index files, preserving deterministic outputs given the same learned state
+- **Documentation as artifact**: READMEs become real knowledge repositories
 
 ## 📅 Roadmap
 
