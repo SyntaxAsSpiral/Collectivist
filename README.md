@@ -68,7 +68,7 @@ nu .collection/view.nu          # Interactive CLI dashboard
 open .collection/dashboard.html # Static HTML viewer
 ```
 
-### Collection Types Auto-Detected
+#### Collection Types Auto-Detected
 - **Repositories**: Git-aware scanning, commit summaries, category taxonomy
 - **Research**: Citation extraction, topic clustering, reading status
 - **Media**: Timeline organization, mood/genre inference, EXIF metadata
