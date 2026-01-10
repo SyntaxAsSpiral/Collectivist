@@ -31,7 +31,7 @@ General file organizers chase "never think about files again" but usually end up
 
 ## 🌐 Installation
 
-### Minimal Level (Zero-Install)
+### 🧺 Minimal Level (Zero-Install)
 ```bash
 # Download .collection/ template
 wget https://github.com/SyntaxAsSpiral/collectivist/raw/main/templates/collection-minimal.zip
@@ -52,7 +52,7 @@ python -m .collection analyze
 ```
 ## Usage
 
-### 🧺 Drop-in Workflow
+### Drop-in Workflow
 ```bash
 # 1. Get .collection/ template (download from GitHub)
 # 2. Drop into any directory with content
