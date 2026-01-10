@@ -78,8 +78,8 @@ open .collection/dashboard.html # Static HTML viewer
 ## Architecture
 
 ```
-C:\Users\synta.ZK-ZRRH\.dev\collectivist\
-├── .collection\                     # Core pipeline machinery
+collectivist-repo/
+├── .collection/                     # Core pipeline machinery
 │   ├── llm.py                       # LLM provider abstraction
 │   ├── plugin_interface.py          # Scanner plugin interface
 │   ├── analyzer.py                  # Stage 1: Collection type detection
@@ -107,7 +107,7 @@ The `collection.yaml` file defines your collection:
 ```yaml
 collection_type: repositories
 name: repos
-path: C:\Users\synta\repos
+path: ~/repos
 categories:
   - phext_hyperdimensional
   - ai_llm_agents
@@ -220,11 +220,11 @@ LLM_API_KEY=sk-...
 Inspects directory structure and determines collection type.
 
 ```bash
-python .collection/analyzer.py C:\Users\synta\repos
+python -m .collection analyze ~/repos
 # Creates collection.yaml
 
 # Force specific type
-python .collection/analyzer.py C:\Users\synta\repos repositories
+python -m .collection analyze ~/repos repositories
 ```
 
 ### Stage 2: Scanner
@@ -233,7 +233,7 @@ Discovers items and extracts metadata using domain-specific plugin.
 
 ```bash
 # Run via pipeline (recommended)
-python -m .collection update C:\Users\synta\repos --skip-describe --skip-readme
+python -m .collection update ~/repos --skip-describe --skip-readme
 ```
 
 ### Stage 3: Describer
@@ -241,10 +241,10 @@ python -m .collection update C:\Users\synta\repos --skip-describe --skip-readme
 Generates LLM descriptions with concurrent workers.
 
 ```bash
-python -m .collection describe C:\Users\synta\repos
+python -m .collection describe ~/repos
 
 # Custom worker count
-python -m .collection describe C:\Users\synta\repos 10
+python -m .collection describe ~/repos 10
 ```
 
 ### Stage 4: README Generator
@@ -252,7 +252,7 @@ python -m .collection describe C:\Users\synta\repos 10
 Transforms YAML index into formatted markdown.
 
 ```bash
-python -m .collection render C:\Users\synta\repos
+python -m .collection render ~/repos
 ```
 
 ## Development
@@ -261,10 +261,10 @@ python -m .collection render C:\Users\synta\repos
 
 ```bash
 # Test with force-type to skip LLM detection
-python -m .collection update C:\Users\synta.ZK-ZRRH\.dev\.repos --force-type repositories
+python -m .collection update ~/repos --force-type repositories
 
 # Validate output matches original system
-diff C:\Users\synta.ZK-ZRRH\.dev\.repos\README.md <expected>
+diff ~/repos/README.md <expected>
 ```
 
 ## 🚫 What Collectivist Is Not
