@@ -11,7 +11,7 @@
 - **LLM-powered analysis**: Automatic categorization and rich description generation
 - **Living documentation**: Auto-generated READMEs that become real knowledge artifacts
 - **Zero-install minimal mode**: Drop `.collection/` folder anywhere, works immediately
-- **Multi-format outputs**: Markdown, HTML, JSON, interactive Nushell scripts
+- **Multi-format outputs**: Markdown, HTML, JSON, interactive shell scripts
 - **Collection types**: Repositories, Obsidian vaults, documents, media files, research papers, creative projects, datasets
 
 ## Installation
@@ -61,7 +61,7 @@ python -m .collection analyze   # ⚠️ Initialize collection (resets schema ev
 python -m .collection update    # Full pipeline + curation loop
 
 # 4. View results
-nu .collection/view.nu          # Interactive CLI dashboard (Nushell)
+nu .collection/view.nu          # Interactive CLI dashboard (shell)
 bash .collection/view.sh        # Interactive CLI dashboard (POSIX shell)
 open .collection/dashboard.html # Static HTML viewer
 ```
@@ -177,7 +177,7 @@ python -m .collection render ~/repos
 - **Zero-install drop-in system** - `.collection/` folder works anywhere
 - **LLM-powered collection analysis** - Auto-detects repository, research, media, creative, dataset types
 - **Domain-specific intelligence** - Git metadata, EXIF, citations, schema inference
-- **Hybrid Python/Nushell outputs** - Beautiful CLI + multiple formats (MD, HTML, JSON)
+- **Hybrid Python/shell outputs** - Beautiful CLI + multiple formats (MD, HTML, JSON)
 - **Self-contained architecture** - All code + deps in one folder
 
 ### Next: Standard Level (Schema Evolution)
