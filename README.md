@@ -11,7 +11,7 @@
 - **Living documentation**: Auto-generated READMEs that become real knowledge artifacts
 - **Zero-install minimal mode**: Drop `.collection/` folder anywhere, works immediately
 - **Multi-format outputs**: Markdown, HTML, JSON, interactive Nushell scripts
-- **Collection types**: Repositories, Obsidian vaults, research papers, media libraries, creative projects, datasets
+- **Collection types**: Repositories, Obsidian vaults, documents, media files, research papers, creative projects, datasets
 
 ## Why This Approach?
 
@@ -160,6 +160,8 @@ scanner_config: {}
 **Built-in Plugins:**
 - **repositories** - Git repository collections with metadata extraction and status tracking
 - **obsidian** - Obsidian vault collections with rich knowledge graph metadata
+- **documents** - Document collections with metadata extraction from PDFs, Office docs, and text files
+- **media** - Media collections with metadata extraction from images, audio, and video files
 
 **Creating Custom Plugins:** Implement the `CollectionScanner` interface from `plugins/plugin_interface.py`. Copy and modify existing plugins as templates.
 
