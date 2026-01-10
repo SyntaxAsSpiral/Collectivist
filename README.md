@@ -75,7 +75,7 @@ open .collection/dashboard.html # Static HTML viewer
 - **Creative**: Version tracking, asset linking, format intelligence
 - **Datasets**: Schema inference, sample previews, data provenance
 
-## ⚙️ Configuration
+### ⚙️ Configuration
 
 Configure LLM providers via environment variables or copy `.env.example` to `.env` and edit. See `.env.example` for detailed examples.
 
