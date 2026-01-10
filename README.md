@@ -106,8 +106,9 @@ Your Collection\
 
 ## Collection Configuration
 
-The `collection.yaml` file defines your collection:
+The `collection.yaml` file defines your collection.
 
+Example:
 ```yaml
 collection_type: repositories
 name: repos
@@ -135,17 +136,6 @@ Scans directories containing git repositories.
 - Git status tracking (up_to_date, updates_available, error, no_remote, not_a_repo)
 - Auto-pull support via `always_pull` flag
 - README-based description generation
-- Category taxonomy for software projects
-
-**Categories:**
-- `phext_hyperdimensional` - Phext, hyperdimensional text, multi-dimensional systems
-- `ai_llm_agents` - AI agents, LLMs, machine learning infrastructure
-- `terminal_ui` - Terminal UI frameworks, TUI components, CLI styling
-- `creative_aesthetic` - Music, art, visualization, color schemes
-- `dev_tools` - Development utilities, scaffolding, build tools
-- `esoteric_experimental` - Esoteric programming, occult/mystical systems
-- `system_infrastructure` - System-level tools, SSH, networking
-- `utilities_misc` - General utilities, miscellaneous tools
 
 ### Creating Custom Plugins
 
