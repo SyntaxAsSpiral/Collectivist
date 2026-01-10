@@ -1,10 +1,10 @@
-# The Collectivist
+# Collectivist
 
-Universal collection indexing system with LLM-generated descriptions and category tagging.
+Universal collection indexing system with LLM-generated descriptions, category tagging, and advanced scheduling + curation options.
 
 ## Overview
 
-The Collectivist is a three-stage pipeline for cataloging and documenting collections of any type: repositories, media files, documents, music, datasets, and more. It uses AI to understand your collections and generate beautiful, searchable documentation.
+Collectivist is a three-stage pipeline for cataloging and documenting collections of any type: repositories, media files, documents, music, datasets, and more. It uses AI to understand your collections and generate beautiful, searchable documentation.
 
 **Three-Stage Pipeline:**
 1. **Analyzer** - LLM inspects directory structure, determines collection type, generates config

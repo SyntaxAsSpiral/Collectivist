@@ -11,13 +11,15 @@ import yaml
 
 from llm import LLMClient, Message
 from plugin_interface import PluginRegistry
+from events import EventEmitter, EventStage
 
 
 class CollectionAnalyzer:
     """Analyzes directories to determine collection type and generate configuration"""
 
-    def __init__(self, llm_client: LLMClient):
+    def __init__(self, llm_client: LLMClient, event_emitter: Optional[EventEmitter] = None):
         self.llm = llm_client
+        self.emitter = event_emitter
 
     def inspect_directory(self, path: Path, max_depth: int = 2, max_samples: int = 20) -> Dict[str, Any]:
         """
@@ -96,32 +98,58 @@ class CollectionAnalyzer:
 
         Returns dict that can be saved as collection.yaml
         """
+        if self.emitter:
+            self.emitter.set_stage(EventStage.ANALYZE)
+            self.emitter.info("Starting collection analysis")
+
         # Inspect directory
+        if self.emitter:
+            self.emitter.info("Inspecting directory structure")
         inspection = self.inspect_directory(path)
 
         # Determine collection type
         if force_type:
+            if self.emitter:
+                self.emitter.info(f"Using forced collection type: {force_type}")
             collection_type = force_type
         else:
             # Use LLM to determine type
+            if self.emitter:
+                self.emitter.info("Querying LLM for collection type detection")
             collection_type = self._detect_collection_type(inspection)
+            if self.emitter:
+                self.emitter.success(f"Collection type detected: {collection_type}")
 
         # Get appropriate scanner
         scanner_class = PluginRegistry.get_plugin(collection_type)
         if not scanner_class:
+            if self.emitter:
+                self.emitter.error(f"No scanner found for collection type: {collection_type}")
             raise ValueError(f"No scanner found for collection type: {collection_type}")
 
         scanner = scanner_class()
 
         # Build config
+        if self.emitter:
+            self.emitter.info("Generating collection configuration")
         config = {
             'collection_type': collection_type,
             'name': path.name,
             'path': str(path),
             'categories': scanner.get_categories(),
             'exclude_hidden': True,
-            'scanner_config': {}
+            'scanner_config': {},
+            'schedule': {
+                'enabled': False,
+                'interval_days': 7,
+                'operations': ['scan', 'describe', 'render'],
+                'auto_file': False,
+                'confidence_threshold': 0.8
+            }
         }
+
+        if self.emitter:
+            self.emitter.complete_stage("Collection analysis complete")
 
         return config
 
@@ -223,10 +251,13 @@ Collection type:"""
         with open(output_path, 'w', encoding='utf-8') as f:
             yaml.dump(config, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
 
-        print(f"[OK] Created collection config: {output_path}")
-        print(f"  Type: {config['collection_type']}")
-        print(f"  Name: {config['name']}")
-        print(f"  Categories: {len(config['categories'])}")
+        if self.emitter:
+            self.emitter.success(f"Created collection config: {output_path}")
+        else:
+            print(f"[OK] Created collection config: {output_path}")
+            print(f"  Type: {config['collection_type']}")
+            print(f"  Name: {config['name']}")
+            print(f"  Categories: {len(config['categories'])}")
 
         return output_path
 

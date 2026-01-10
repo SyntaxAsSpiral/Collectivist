@@ -4,11 +4,12 @@ README Generator - Universal markdown documentation from collection index
 """
 
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from datetime import datetime
 from collections import defaultdict
 
 from plugin_interface import CollectionItem
+from events import EventEmitter, EventStage
 
 
 def format_size(bytes: int) -> str:
@@ -47,7 +48,8 @@ def generate_readme(
     items: List[CollectionItem],
     collection_name: str,
     collection_type: str,
-    output_path: Path
+    output_path: Path,
+    event_emitter: Optional[EventEmitter] = None
 ):
     """
     Generate README.md from collection items.
@@ -57,8 +59,17 @@ def generate_readme(
         collection_name: Name of the collection
         collection_type: Type of collection (repositories, media, etc.)
         output_path: Path to save README.md
+        event_emitter: Optional event emitter for progress updates
     """
+    emitter = event_emitter
+    
+    if emitter:
+        emitter.set_stage(EventStage.RENDER)
+        emitter.info("Starting README generation")
+
     # Calculate stats
+    if emitter:
+        emitter.info("Calculating collection statistics")
     total_items = len(items)
     total_size = sum(item.size for item in items)
     described = sum(1 for item in items if item.description)
@@ -80,6 +91,8 @@ def generate_readme(
         }
 
     # Build header
+    if emitter:
+        emitter.info("Building README header and overview")
     header_parts = [
         f"# {collection_name}\n",
         f"> Indexed {collection_type} collection\n",
@@ -112,6 +125,8 @@ def generate_readme(
     header = ''.join(header_parts)
 
     # Build table
+    if emitter:
+        emitter.info("Building item table")
     table_rows = []
     for item in items:
         status = get_status_emoji(item) if collection_type == 'repositories' else ''
@@ -136,6 +151,8 @@ def generate_readme(
     table = table_header + table_separator + "\n" + '\n'.join(table_rows) + "\n\n---\n\n"
 
     # Build category sections
+    if emitter:
+        emitter.info("Building categorized sections")
     categories = defaultdict(list)
     for item in items:
         if item.category:
@@ -186,10 +203,15 @@ python .index/readme_generator.py
     readme_content = header + table + ''.join(category_sections) + footer
 
     # Save
+    if emitter:
+        emitter.info(f"Writing README to {output_path}")
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(readme_content)
 
-    print(f"[OK] README generated at {output_path}")
+    if emitter:
+        emitter.complete_stage(f"README generated at {output_path}")
+    else:
+        print(f"[OK] README generated at {output_path}")
 
 
 def main():

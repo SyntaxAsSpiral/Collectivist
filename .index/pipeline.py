@@ -13,6 +13,8 @@ from llm import create_client_from_config, test_llm_connection
 from plugin_interface import PluginRegistry, CollectionItem
 from analyzer import CollectionAnalyzer
 from describer import CollectionDescriber
+from events import EventEmitter, create_console_emitter
+from organic import ContentProcessor
 
 # Import plugins to trigger registration
 sys.path.insert(0, str(Path(__file__).parent.parent / 'plugins'))
@@ -30,7 +32,49 @@ def load_collection_config(collection_path: Path) -> Dict[str, Any]:
         )
 
     with open(config_path, 'r', encoding='utf-8') as f:
-        return yaml.safe_load(f)
+        config = yaml.safe_load(f)
+    
+    # Ensure schedule configuration exists with defaults
+    if 'schedule' not in config:
+        config['schedule'] = {
+            'enabled': False,
+            'interval_days': 7,
+            'operations': ['scan', 'describe', 'render'],
+            'auto_file': False,
+            'confidence_threshold': 0.8
+        }
+    
+    return config
+
+
+def get_workflow_config_from_collection(collection_path: Path) -> Dict[str, Any]:
+    """
+    Extract workflow configuration from collection.yaml.
+    Returns workflow mode and parameters based on schedule settings.
+    """
+    config = load_collection_config(collection_path)
+    schedule = config.get('schedule', {})
+    
+    # Determine workflow mode from schedule configuration
+    if not schedule.get('enabled', False):
+        workflow_mode = "manual"
+    elif schedule.get('enabled') == "organic":
+        workflow_mode = "organic"
+    elif schedule.get('enabled') is True:
+        workflow_mode = "scheduled"
+    else:
+        workflow_mode = "manual"
+    
+    # Extract workflow parameters
+    workflow_config = {
+        'mode': workflow_mode,
+        'auto_file': schedule.get('auto_file', False),
+        'confidence_threshold': schedule.get('confidence_threshold', 0.7),
+        'operations': schedule.get('operations', ['scan', 'describe', 'render']),
+        'interval_days': schedule.get('interval_days', 7)
+    }
+    
+    return workflow_config
 
 
 def save_index(items: list[CollectionItem], index_path: Path):
@@ -100,8 +144,13 @@ def run_full_pipeline(
     skip_scan: bool = False,
     skip_describe: bool = False,
     skip_readme: bool = False,
+    skip_process_new: bool = False,
     force_type: Optional[str] = None,
-    max_workers: int = 5
+    max_workers: int = 5,
+    auto_file: bool = False,
+    confidence_threshold: float = 0.7,
+    event_emitter: Optional[EventEmitter] = None,
+    workflow_mode: str = "manual"
 ):
     """
     Run the complete Collectivist pipeline.
@@ -112,36 +161,88 @@ def run_full_pipeline(
         skip_scan: Skip scanner stage (requires existing index)
         skip_describe: Skip describer stage
         skip_readme: Skip README generation stage
+        skip_process_new: Skip new content processing stage
         force_type: Force collection type (skip LLM detection)
         max_workers: Number of concurrent workers for describer
+        auto_file: Automatically move new items with high confidence
+        confidence_threshold: Minimum confidence for auto-filing
+        event_emitter: Optional event emitter for progress updates
+        workflow_mode: Workflow mode - "manual", "scheduled", or "organic"
     """
     collection_path = collection_path.resolve()
     index_dir = collection_path / '.index'
     index_path = index_dir / 'collection-index.yaml'
     config_path = collection_path / 'collection.yaml'
 
+    # Use console emitter if none provided (backward compatibility)
+    emitter = event_emitter or create_console_emitter()
+
     # Create .index directory if needed
     index_dir.mkdir(exist_ok=True)
 
-    print(f"The Collectivist Pipeline")
-    print(f"Collection: {collection_path}\n")
+    if not event_emitter:  # Only print header for console mode
+        print(f"Collectivist Pipeline")
+        print(f"Collection: {collection_path}")
+        print(f"Mode: {workflow_mode}")
+        print()
+
+    # Determine workflow behavior based on mode
+    if workflow_mode == "manual":
+        # Manual mode: respect all skip flags, no automatic processing
+        pass
+    elif workflow_mode == "scheduled":
+        # Scheduled mode: regular indexing, no new content processing
+        skip_process_new = True
+        auto_file = False
+    elif workflow_mode == "organic":
+        # Organic mode: full workflow with intelligent curation
+        skip_process_new = False
+        # auto_file and confidence_threshold can be configured per collection
+
+    # Stage 0: Process New Content (organic workflow)
+    if not skip_process_new:
+        if not event_emitter:  # Console mode
+            print("=" * 60)
+            print("STAGE 0: ORGANIC - New Content Processing")
+            print("=" * 60)
+
+        # Create content processor
+        llm_client = create_client_from_config()
+        processor = ContentProcessor(llm_client, emitter)
+
+        # Process new content
+        results = processor.process_new_content(
+            collection_path,
+            auto_file=auto_file,
+            confidence_threshold=confidence_threshold
+        )
+
+        if not event_emitter and results:  # Console mode
+            auto_filed = sum(1 for r in results if r['auto_filed'])
+            suggestions = sum(1 for r in results if not r['auto_filed'] and not r['error'])
+            print(f"[OK] Processed {len(results)} new items: {auto_filed} auto-filed, {suggestions} suggestions")
+            print()
 
     # Stage 1: Analyze (create collection.yaml)
     if not skip_analyze:
-        print("=" * 60)
-        print("STAGE 1: ANALYZER - Collection Type Detection")
-        print("=" * 60)
+        if not event_emitter:  # Only print stage headers for console mode
+            print("=" * 60)
+            print("STAGE 1: ANALYZER - Collection Type Detection")
+            print("=" * 60)
 
         llm_client = create_client_from_config()
-        analyzer = CollectionAnalyzer(llm_client)
+        analyzer = CollectionAnalyzer(llm_client, emitter)
 
         if not config_path.exists():
-            print("No collection.yaml found, creating...")
+            if emitter and not event_emitter:  # Console mode
+                print("No collection.yaml found, creating...")
             analyzer.create_collection(collection_path, force_type=force_type)
         else:
-            print("[OK] collection.yaml already exists")
+            if emitter and not event_emitter:  # Console mode
+                print("[OK] collection.yaml already exists")
 
-        print()
+        if not event_emitter:  # Console mode
+            print()
 
     # Load config
     config = load_collection_config(collection_path)
@@ -156,11 +257,12 @@ def run_full_pipeline(
 
     # Stage 2: Scan (discover items, extract metadata)
     if not skip_scan:
-        print("=" * 60)
-        print("STAGE 2: SCANNER - Item Discovery & Metadata Extraction")
-        print("=" * 60)
-        print(f"Scanner: {scanner.get_name()}")
-        print("Scanning collection...")
+        if not event_emitter:  # Console mode
+            print("=" * 60)
+            print("STAGE 2: SCANNER - Item Discovery & Metadata Extraction")
+            print("=" * 60)
+            print(f"Scanner: {scanner.get_name()}")
+            print("Scanning collection...")
 
         # Load existing index to preserve descriptions/categories
         existing_items = load_index(index_path)
@@ -183,32 +285,39 @@ def run_full_pipeline(
         # Save index
         save_index(items, index_path)
 
-        print(f"[OK] Scanned {len(items)} items")
-        print(f"  Saved to {index_path}")
-        print()
+        if not event_emitter:  # Console mode
+            print(f"[OK] Scanned {len(items)} items")
+            print(f"  Saved to {index_path}")
+            print()
     else:
         # Load existing index
         items = load_index(index_path)
 
     # Stage 3: Describe (LLM description generation)
     if not skip_describe:
-        print("=" * 60)
-        print("STAGE 3: DESCRIBER - LLM Description Generation")
-        print("=" * 60)
+        if not event_emitter:  # Console mode
+            print("=" * 60)
+            print("STAGE 3: DESCRIBER - LLM Description Generation")
+            print("=" * 60)
 
         # Create LLM client and test connection
         llm_client = create_client_from_config()
 
-        print("Testing LLM connection...")
+        if not event_emitter:  # Console mode
+            print("Testing LLM connection...")
         if not test_llm_connection(llm_client):
-            print("[X] FATAL: Cannot reach LLM endpoint")
-            print("  Configure LLM_PROVIDER in .env file")
+            error_msg = "Cannot reach LLM endpoint - Configure LLM_PROVIDER in .env file"
+            if emitter:
+                emitter.error(error_msg)
+            else:
+                print(f"[X] FATAL: {error_msg}")
             sys.exit(1)
 
-        print("[OK] LLM connection OK\n")
+        if not event_emitter:  # Console mode
+            print("[OK] LLM connection OK\n")
 
         # Create describer
-        describer = CollectionDescriber(llm_client, scanner, max_workers)
+        describer = CollectionDescriber(llm_client, scanner, max_workers, emitter)
 
         # Define save callback for incremental saves
         def save_callback(updated_items):
@@ -217,13 +326,15 @@ def run_full_pipeline(
         # Generate descriptions
         items = describer.describe_collection(items, save_callback=save_callback)
 
-        print()
+        if not event_emitter:  # Console mode
+            print()
 
     # Stage 4: README Generation
     if not skip_readme:
-        print("=" * 60)
-        print("STAGE 4: README GENERATOR - Documentation Generation")
-        print("=" * 60)
+        if not event_emitter:  # Console mode
+            print("=" * 60)
+            print("STAGE 4: README GENERATOR - Documentation Generation")
+            print("=" * 60)
 
         from readme_generator import generate_readme
 
@@ -232,20 +343,22 @@ def run_full_pipeline(
             items=items,
             collection_name=config['name'],
             collection_type=collection_type,
-            output_path=readme_path
+            output_path=readme_path,
+            event_emitter=emitter
         )
 
-        print(f"[OK] README generated: {readme_path}")
-        print()
+        if not event_emitter:  # Console mode
+            print()
 
     # Final summary
-    print("=" * 60)
-    print("PIPELINE COMPLETE")
-    print("=" * 60)
-    print(f"Total items: {len(items)}")
-    print(f"Described: {sum(1 for item in items if item.description)}")
-    print(f"Categorized: {sum(1 for item in items if item.category)}")
-    print()
+    if not event_emitter:  # Console mode
+        print("=" * 60)
+        print("PIPELINE COMPLETE")
+        print("=" * 60)
+        print(f"Total items: {len(items)}")
+        print(f"Described: {sum(1 for item in items if item.description)}")
+        print(f"Categorized: {sum(1 for item in items if item.category)}")
+        print()
 
 
 def main():
@@ -291,6 +404,29 @@ def main():
         default=5,
         help='Number of concurrent workers for describer (default: 5)'
     )
+    parser.add_argument(
+        '--skip-process-new',
+        action='store_true',
+        help='Skip new content processing stage'
+    )
+    parser.add_argument(
+        '--auto-file',
+        action='store_true',
+        help='Automatically move new items with high confidence'
+    )
+    parser.add_argument(
+        '--confidence-threshold',
+        type=float,
+        default=0.7,
+        help='Minimum confidence for auto-filing (default: 0.7)'
+    )
+    parser.add_argument(
+        '--workflow-mode',
+        type=str,
+        choices=['manual', 'scheduled', 'organic'],
+        default='manual',
+        help='Workflow mode: manual (default), scheduled, or organic'
+    )
 
     args = parser.parse_args()
 
@@ -301,8 +437,12 @@ def main():
             skip_scan=args.skip_scan,
             skip_describe=args.skip_describe,
             skip_readme=args.skip_readme,
+            skip_process_new=args.skip_process_new,
             force_type=args.force_type,
-            max_workers=args.max_workers
+            max_workers=args.max_workers,
+            auto_file=args.auto_file,
+            confidence_threshold=args.confidence_threshold,
+            workflow_mode=args.workflow_mode
         )
     except Exception as e:
         print(f"\nX Pipeline failed: {e}")

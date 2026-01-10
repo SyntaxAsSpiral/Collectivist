@@ -12,6 +12,7 @@ import yaml
 
 from llm import LLMClient, Message, test_llm_connection
 from plugin_interface import CollectionScanner, CollectionItem, PluginRegistry
+from events import EventEmitter, EventStage
 
 
 class CollectionDescriber:
@@ -21,11 +22,13 @@ class CollectionDescriber:
         self,
         llm_client: LLMClient,
         scanner: CollectionScanner,
-        max_workers: int = 5
+        max_workers: int = 5,
+        event_emitter: Optional[EventEmitter] = None
     ):
         self.llm = llm_client
         self.scanner = scanner
         self.max_workers = max_workers
+        self.emitter = event_emitter
 
     def generate_description(
         self,
@@ -153,11 +156,18 @@ class CollectionDescriber:
         total = len(needs_description)
 
         if total == 0:
-            print("[OK] All items already have descriptions")
+            if self.emitter:
+                self.emitter.info("All items already have descriptions")
+            else:
+                print("[OK] All items already have descriptions")
             return items
 
-        print(f"Found {total} items needing descriptions")
-        print(f"Processing with {self.max_workers} concurrent workers...\n")
+        if self.emitter:
+            self.emitter.set_stage(EventStage.DESCRIBE, total_items=total)
+            self.emitter.info(f"Found {total} items needing descriptions")
+        else:
+            print(f"Found {total} items needing descriptions")
+            print(f"Processing with {self.max_workers} concurrent workers...\n")
 
         # Build examples from items that already have descriptions
         examples = [
@@ -186,10 +196,20 @@ class CollectionDescriber:
                 result = future.result()
 
                 if result['error'] is not None:
-                    print(f"  [{result['idx']}/{result['total']}] {result['item'].short_name}: [!] {result['error']}")
+                    if self.emitter:
+                        self.emitter.warn(f"{result['item'].short_name}: {result['error']}")
+                    else:
+                        print(f"  [{result['idx']}/{result['total']}] {result['item'].short_name}: [!] {result['error']}")
                     failed.append(result['item'])
                 else:
-                    print(f"  [{result['idx']}/{result['total']}] {result['item'].short_name}: [OK] {result['description']} [{result['category']}]")
+                    if self.emitter:
+                        self.emitter.set_progress(
+                            result['idx'], 
+                            result['item'].short_name
+                        )
+                        self.emitter.info(f"{result['item'].short_name}: {result['description']} [{result['category']}]")
+                    else:
+                        print(f"  [{result['idx']}/{result['total']}] {result['item'].short_name}: [OK] {result['description']} [{result['category']}]")
 
                     # Update item in original list
                     for i, item in enumerate(items):
@@ -204,9 +224,14 @@ class CollectionDescriber:
 
                     successful += 1
 
-        print(f"\n[OK] Completed: {successful}/{total} descriptions generated")
-        if failed:
-            print(f"[!] Failed: {len(failed)} items")
+        if self.emitter:
+            self.emitter.complete_stage(f"Completed: {successful}/{total} descriptions generated")
+            if failed:
+                self.emitter.warn(f"Failed: {len(failed)} items")
+        else:
+            print(f"\n[OK] Completed: {successful}/{total} descriptions generated")
+            if failed:
+                print(f"[!] Failed: {len(failed)} items")
 
         return items
 

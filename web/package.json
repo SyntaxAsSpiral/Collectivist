@@ -1,0 +1,21 @@
+{
+  "name": "collectivist-web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint \"frontend/src/**/*.{ts,tsx}\"",
+    "lint:fix": "eslint \"frontend/src/**/*.{ts,tsx}\" --fix",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && python main.py",
+    "build:frontend": "cd frontend && npm run build"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
+    "@typescript-eslint/parser": "^6.14.0",
+    "eslint": "^8.55.0",
+    "eslint-plugin-react": "^7.33.0",
+    "eslint-plugin-react-refresh": "^0.4.5",
+    "globals": "^13.24.0"
+  }
+}

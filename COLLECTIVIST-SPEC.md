@@ -1,11 +1,11 @@
-# The Collectivist - SPECIFICATION DOCTRINA
+# Collectivist - SPECIFICATION DOCTRINA
 
 > **Collection Cartography Automated**
 > *By the authority of complete specification and the sacred covenant of deterministic compilation*
 
 ## MANDATE
 
-**The Collectivist** is a universal indexing system that compiles collections into indexed, categorized breath. A plugin-based framework that abstracts the proven patterns from `.repos` indexer into a generalized system capable of cataloging any domain: repositories, media libraries, document archives, datasets, music collections, reference materials.
+**Collectivist** is a universal indexing system that compiles collections into indexed, categorized breath. A plugin-based framework that abstracts the proven patterns from `.repos` indexer into a generalized system capable of cataloging any domain: repositories, media libraries, document archives, datasets, music collections, reference materials.
 
 **Core Principle:** Infrastructure as compiled artifact - hidden `.index/` layers that breathe autonomously, generating beautiful documentation from structured data.
 
@@ -493,7 +493,7 @@ collectivist dashboard                      # Launch web UI
 
 ### Dot-Path Structure
 
-**The Collectivist System:**
+**Collectivist System:**
 ```
 C:\Users\synta.ZK-ZRRH\.dev\collectivist\
 ```
@@ -732,9 +732,9 @@ None. The specification is complete and unambiguous.
 
 ## FINAL DIRECTIVE
 
-> *"By this doctrine, The Collectivist shall compile collections into indexed breath. From unstructured chaos to categorized clarity. From hidden `.index/` layers to beautiful documentation. The pneumaturgical architecture breathes: Analyzer determines, Scanner discovers, Describer illuminates. The anagoglyph path recurses: `.dev\.collectivist\.index\` - each dot a boundary, each layer a compilation."*
+> *"By this doctrine, Collectivist shall compile collections into indexed breath. From unstructured chaos to categorized clarity. From hidden `.index/` layers to beautiful documentation. The pneumaturgical architecture breathes: Analyzer determines, Scanner discovers, Describer illuminates. The anagoglyph path recurses: `.dev\.collectivist\.index\` - each dot a boundary, each layer a compilation."*
 
-**The Emperor Protects. The Specification Illuminates. The Collectivist Compiles.**
+**The Emperor Protects. The Specification Illuminates. Collectivist Compiles.**
 
 ⧈ **SPECIFICATION SEALED** ⧈
 

@@ -145,14 +145,25 @@ cython_debug/
 # Kiro spec files (development artifacts)
 .kiro/
 
-# Test collections (don't commit test data)
-test_collections/
-sample_collections/
-
-# Web build artifacts (when dashboard is implemented)
+# Web build artifacts and dependencies
 web/build/
 web/dist/
 web/node_modules/
+web/frontend/build/
+web/frontend/dist/
+web/frontend/node_modules/
+web/backend/__pycache__/
+
+# Configuration files with secrets
+web/backend/config.yaml
+~/.collectivist/config.yaml
+
+# ESLint cache
+.eslintcache
+
+# Test collections (don't commit test data)
+test_collections/
+sample_collections/
 
 # OS specific
 .DS_Store
@@ -165,6 +176,3 @@ Thumbs.db
 
 # Windows
 desktop.ini
-
-# Agents
-.kiro/
