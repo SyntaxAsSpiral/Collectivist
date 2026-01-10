@@ -1,0 +1,1 @@
+These are the cannonical core files for the MVP version of Collectivist. 

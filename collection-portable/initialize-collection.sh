@@ -1,0 +1,1 @@
+Checks for python + dependancies, installs what's needed and asks user if they want to begin analyzing. 

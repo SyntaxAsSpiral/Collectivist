@@ -1,10 +1,23 @@
-# 💮 Collectivist Configuration
-# Copy this file to one of these locations:
-# 1. .collection/collectivist.yaml (collection-specific config)
-# 2. ~/.collectivist/config.yaml (global user config)
-# 3. Or specify custom path with --config option
+---
+id: collectivist-llm-config
+created: 2026-01-01T15:23:47.603-08:00
+modified: 2026-01-01T21:52:08.221-08:00
+status: example
+---
 
-# =============================================================================
+# 💮 Collectivist Configuration
+
+## Rename this file to `llm-config.md` to drop in your Obsidian vault. 
+
+## Notes
+
+- Only the first block is parsed
+- Frontmatter and surrounding Markdown are ignored
+- This format is perfect for Obsidian vault configuration
+- Changes are version-controlled with your notes
+
+```yaml
+ =============================================================================
 # 🤖 LLM CONFIGURATION
 # =============================================================================
 
@@ -106,3 +119,5 @@ llm_provider: lmstudio
 # python -c "from .collection.llm import LLMClient; print(LLMClient.from_config().get_available_models())"
 #
 # Copy this file to .collection/collectivist.yaml and customize for your setup!
+
+```

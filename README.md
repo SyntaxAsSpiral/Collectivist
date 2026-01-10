@@ -12,40 +12,15 @@
 - **LLM-powered analysis**: Automatic categorization and rich description generation
 - **Template-based rendering**: Deterministic output generation in multiple formats (Markdown, HTML, JSON)
 - **Living documentation**: Auto-generated READMEs that become real knowledge artifacts
-- **Zero-install minimal mode**: Drop `.collection/` folder anywhere, works immediately
+- **Portable install minimal mode**: Drop `.collection/` folder anywhere, works immediately
 - **Multi-location configuration**: YAML and Markdown-embedded config with smart defaults
 - **Multi-format outputs**: Markdown documentation, interactive HTML index, JSON export
 - **Collection types**: Repositories, Obsidian vaults, documents, media files, research papers, creative projects, datasets
 
 ## Installation
 
-### 🧺 Minimal Zero-Install (Analyze + Index + Describe)
-#### 1) Clone repo
-#### 2) Copy .collection/ to your collection folder to be curated.<br>
-**OR**:<br>
-```bash
-# Download .collection/ template from releases
-# TODO: Update with actual release URL when first release is created
-wget https://github.com/SyntaxAsSpiral/collectivist/releases/download/v0.1.0/collection-minimal.zip
-unzip collection-minimal.zip
-# Drop into any collection directory
-cp -r .collection ~/my-repos/
-cd ~/my-repos
-```
-
-#### (Install Python 3 if needed)
-| Operating System | Installation Command |
-| :--- | :--- |
-| Ubuntu / Debian | `sudo apt update && sudo apt install python3` |
-| macOS (via Homebrew) | `brew install python` |
-| Windows (via Winget) | `winget install Python.Python.3.12` |
-| Fedora | `sudo dnf install python3` |
-
-
-#### 3) Start using immediately
-```bash
-python -m .collection analyze
-```
+### 🧺 Portable Install (Analyze + Index + Describe)
+#### 1) Clone repo or download .zip from latest release. 
 
 ---
 
@@ -58,64 +33,8 @@ python -m .collection analyze
 
 ### 🤖 Configuration
 
-Collectivist uses a sophisticated multi-location configuration system supporting both YAML and Markdown formats.
+Configure LLM providers by renaming `llm-config.yaml.example` to `llm-config.yaml` and following the instructions to pick a backend + model.  
 
-Configure LLM providers by copying `config.example` to one of these locations and editing:
-
-**Priority Order (highest to lowest):**
-1. **`.collection/collectivist.yaml`** - Collection-specific configuration
-2. **`.collection/collectivist.md`** - Collection config embedded in Markdown (Obsidian-friendly)
-3. **`collectivist.md`** - Collection root config (Obsidian users - put in vault root)
-4. **`~/.collectivist/config.yaml`** - Global user configuration
-5. **Custom path** - Via `--config` CLI option
-
-**Configuration Format:**
-```yaml
-# LLM Configuration
-llm_provider: lmstudio              # lmstudio, ollama, openrouter, openai, anthropic, pollinations
-llm_model: llama3.1-8b-instruct     # Optional: uses smart defaults if not set
-llm_api_key: sk-...                 # Required for cloud providers
-llm_base_url: https://custom.com/v1 # Optional: override default provider URL
-```
-
-**Markdown Format (Obsidian-friendly):**
-```markdown
-# Collection Configuration
-
-```yaml
-llm_provider: lmstudio
-llm_model: llama3.1-8b-instruct
-```
-
-Only the first `yaml` code block is parsed. Frontmatter and surrounding Markdown are ignored.
-```
-
-**Smart Defaults:** When `llm_model` is not specified, Collectivist uses intelligent defaults:
-- **LMStudio:** `local-model` (whatever is loaded)
-- **OpenRouter:** `openai/gpt-oss-120b:free` (free tier)
-- **Pollinations:** `openai` (free)
-- **Ollama:** `llama3.1` (common model)
-- **OpenAI:** `gpt-4o-mini`
-- **Anthropic:** `claude-3-haiku-20240307`
-
-## Usage
-
-### Full Drop-in Workflow
-
-```bash
-# 1. Get .collection/ template (download from GitHub)
-# 2. Drop into any directory with content
-cp -r .collection ~/my-collection/
-cd ~/my-collection
-
-# 3. Initialize and run curation loop
-python -m .collection analyze   # ⚠️ Initialize collection (resets schema evolution)
-python -m .collection update    # Full pipeline + curation loop
-
-# 4. View results
-cat README.md                   # View generated documentation
-open Collection.html            # Interactive HTML index with clickable links
-```
 
 ### ⚠️ Reinitialization Warning
 
@@ -126,8 +45,6 @@ Running `python -m .collection analyze` again will **reset your collection's sch
 - **Schema evolution** from the Curator is lost when re-analyzing
 
 The curation loop is designed for continuous improvement - avoid reinitialization unless necessary!
-
-
 
 ## Collection Schema
 
@@ -253,7 +170,7 @@ General file organizers chase "never think about files again" but usually end up
 ## 📅 Roadmap
 
 ### Complete: Minimal Level MVP
-- **Zero-install drop-in system** - `.collection/` folder works anywhere
+- **Portable-install drop-in system** - `.collection/` folder works anywhere
 - **LLM-powered collection analysis** - Auto-detects repository, research, media, creative, dataset types
 - **Domain-specific intelligence** - Git metadata, EXIF, citations, schema inference
 - **Collection overview generation** - LLM-powered contextual summaries of complete collections

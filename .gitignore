@@ -184,4 +184,5 @@ Thumbs.db
 desktop.ini
 
 # Testing
-test*/
+tests/*
+!tests/test_cli.py
