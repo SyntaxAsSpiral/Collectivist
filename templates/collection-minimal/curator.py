@@ -1,23 +1,23 @@
 """
-Collection Curator - Schema Evolution Engine
+Collection Curator - Conservative Schema Evolution Engine
 
-The "Advanced Analyzer" that evolves collection schema over time.
-Takes current schema + collection state → analyzes organization effectiveness → evolves schema for next run.
+The "Advanced Analyzer" that evolves collection schema ONLY WHEN NECESSARY.
+2-Phase Approach: Phase 1 analyzes effectiveness, Phase 2 designs evolution (only if needed).
 
 CORE QUESTIONS:
 - Are files organized effectively under current schema?
 - Are categories accurate, redundant, or optimally useful?
 - Is folder structure conducive to semantic substrate?
-- Should schema evolve for better efficacy while maintaining stability?
+- Does the schema need evolution for better efficacy while maintaining stability?
 
-CURATION LOOP:
+CURATION LOOP (Conservative):
 First Run:  Analyzer creates initial schema → Curator analyzes initial organization
-Next Runs:  Curator evolves schema → Indexer/Describer/Renderer use evolved schema → repeat
+Next Runs:  Curator Phase 1 (analyze) → if necessary, Phase 2 (evolve schema) → repeat
 
 BALANCE: Keep schema stable as long as possible while ensuring maximum effectiveness.
-Can't be afraid of mutation, can't be stagnant without efficacy.
+Evolution happens only when analysis shows clear necessity.
 
-GENERATES: Updated collection.yaml schema for next pipeline run.
+GENERATES: Updated collection.yaml schema for next pipeline run (only when needed).
 Operator manual reorganization gets detected and incorporated.
 
 HIERARCHICAL INTERVENTION (when evolution needed):
@@ -50,7 +50,9 @@ class CollectionCurator:
         self.llm_client = llm_client or LLMClient.from_config()
 
     def curate(self) -> None:
-        """Run schema evolution analysis and update collection.yaml for next run"""
+        """Run conservative schema evolution - Phase 1: Analysis, Phase 2: Schema Design (only if necessary)"""
+        print("🧠 Curator: Starting conservative schema evolution analysis...")
+
         # Load current index
         index_path = self.collection_dir / "index.yaml"
         if not index_path.exists():
@@ -68,18 +70,25 @@ class CollectionCurator:
         else:
             self.config = {}
 
-        # Analyze collection organization and effectiveness
-        analysis = self._analyze_organization_effectiveness(index_data)
+        # Phase 1: Analysis - analyze current organization effectiveness
+        print("📊 Phase 1: Analyzing collection organization effectiveness...")
+        analysis = self._phase1_organization_analysis(index_data)
 
-        # Determine if schema evolution is needed
+        # Determine if evolution is necessary (conservative threshold)
         evolution_needed = self._should_evolve_schema(analysis)
 
         if not evolution_needed:
-            print("✅ Schema is effective - maintaining stability")
+            print("✅ Schema remains effective - opting out of Phase 2")
+            print("   Collection organization is optimal under current schema")
             return
 
-        # Generate evolved schema
-        evolved_config = self._evolve_schema(analysis)
+        print("🎯 Evolution opportunities detected - proceeding to Phase 2")
+        print(f"   Issues found: {len(analysis['organizational_issues'])}")
+        print(f"   Opportunities: {len(analysis['evolution_opportunities'])}")
+
+        # Phase 2: Schema Design - only run if evolution is necessary
+        print("🎨 Phase 2: Designing evolved schema...")
+        evolved_config = self._phase2_schema_design(analysis)
 
         # Generate proposals script for user review
         self._generate_proposals_script(analysis, evolved_config)
@@ -87,8 +96,8 @@ class CollectionCurator:
         print(f"🎯 Generated schema evolution proposals in {self.collection_path}/proposals.nu")
         print("   Review changes and run: nu proposals.nu"        print("   This will update collection.yaml for the next pipeline run")
 
-    def _analyze_organization_effectiveness(self, index_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Analyze how well the current schema organizes the collection."""
+    def _phase1_organization_analysis(self, index_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Phase 1: Analyze how well the current schema organizes the collection."""
         items = index_data.get("items", [])
         current_categories = self.config.get("categories", [])
 
@@ -139,8 +148,8 @@ class CollectionCurator:
 
         return evolution_signals >= 2  # Conservative threshold
 
-    def _evolve_schema(self, analysis: Dict[str, Any]) -> Dict[str, Any]:
-        """Generate evolved schema based on analysis."""
+    def _phase2_schema_design(self, analysis: Dict[str, Any]) -> Dict[str, Any]:
+        """Phase 2: Design evolved schema based on analysis - only when necessary."""
         evolved_config = self.config.copy()
 
         # Apply evolution opportunities

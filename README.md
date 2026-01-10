@@ -33,7 +33,7 @@ General file organizers chase "never think about files again" but usually end up
     Curator → Analyzes initial organization
 
 ### Subsequent Runs (Evolution Loop):
-    Curator → Analyzes current organization effectiveness → Evolves schema for next run
+    Curator → Phase 1: Analyzes organization effectiveness → Phase 2: Evolves schema (only if necessary)
     Indexer → Uses evolved schema
     Describer → Uses evolved categories
     Renderer → Uses evolved schema
@@ -317,8 +317,8 @@ Collectivist excels at **intentional collections** you care about enough to give
 ### Next: Standard Level (Schema Evolution)
 - **Vite + Vue frontend** - Modern web interface for schema evolution
 - **FastAPI backend** - REST API + WebSocket real-time updates
-- **Schema evolution engine** - Curator evolves collection.yaml for optimal organization
-- **Intelligent evolution** - Balances stability with efficacy through hierarchical analysis
+- **Conservative schema evolution** - Curator analyzes → evolves schema only when necessary
+- **2-phase curation** - Phase 1 analyzes effectiveness, Phase 2 designs evolution (opt-in)
 - **LLM provider management** - Easy configuration of models/providers
 
 ### Future: Package Manager & Extensions
