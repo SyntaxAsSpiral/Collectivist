@@ -97,7 +97,7 @@ The curation loop is designed for continuous improvement - avoid reinitializatio
 - **Datasets**: Schema inference, sample previews, data provenance
 - **Obsidian**: Knowledge graph analysis, tag networks, link mapping, frontmatter extraction
 
-### ⚙️ Configuration
+### 🤖 Configuration
 
 Configure LLM providers by copying `config.example` to one of these locations and editing:
 
