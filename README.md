@@ -32,7 +32,7 @@ General file organizers chase "never think about files again" but usually end up
 
 ## 🌐 Installation
 
-### 🧺 Minimal Level (Zero-Install)
+### 🧺 Minimal Level - Zero-Install (Analyze + Index + Describe)
 ```bash
 # Download .collection/ template
 wget https://github.com/SyntaxAsSpiral/collectivist/raw/main/templates/collection-minimal.zip
