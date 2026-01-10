@@ -7,39 +7,14 @@
 ## 🌱 Features
 
 - **Domain-specific intelligence**: Git metadata, ID3 tags, EXIF data, citations, and semantic understanding
+- **Curation that feels magical**: Context-aware organization based on actual intent
 - **LLM-powered analysis**: Automatic categorization and rich description generation
 - **Living documentation**: Auto-generated READMEs that become real knowledge artifacts
 - **Zero-install minimal mode**: Drop `.collection/` folder anywhere, works immediately
-- **Multi-format outputs**: Markdown, HTML, JSON, interactive Nushell scripts
+- **Multi-format outputs**: Markdown, HTML, JSON, interactive shell scripts
 - **Collection types**: Repositories, Obsidian vaults, documents, media files, research papers, creative projects, datasets
 
-## Why This Approach?
-
-General file organizers chase "never think about files again" but usually end up with mediocre generic sorting. Collectivist focuses on **intentional collections** where each item matters, enabling:
-
-- **Depth over breadth**: Domain-specific intelligence instead of one-size-fits-all rules
-- **Curation system**: Ongoing pattern learning and intelligent reorganization (standard level)
-- **Deterministic outputs**: Pattern learning is persisted explicitly in schema and index files, preserving deterministic outputs given the same learned state
-- **Documentation as artifact**: READMEs become real knowledge repositories
-- **Curation that feels magical**: Context-aware organization based on actual intent
-
-## 🧬 Pipeline
-
-### First Run (Entry Point):
-    Analyzer → Creates initial collection.yaml schema
-    Indexer → Gathers data
-    Describer → Adds descriptions
-    Renderer → Generates outputs
-    Curator → Analyzes initial organization
-
-### Subsequent Runs (Evolution Loop):
-    Curator → Analyzes organization effectiveness, evolves schema (only if necessary)
-    Indexer → Uses evolved schema
-    Describer → Uses evolved categories
-    Renderer → Uses evolved schema
-    Curator → Analyzes again → Evolves further 
-
-## 🌐 Installation
+## Installation
 
 ### 🧺 Minimal Zero-Install (Analyze + Index + Describe)
 ```bash
@@ -86,7 +61,7 @@ python -m .collection analyze   # ⚠️ Initialize collection (resets schema ev
 python -m .collection update    # Full pipeline + curation loop
 
 # 4. View results
-nu .collection/view.nu          # Interactive CLI dashboard (Nushell)
+nu .collection/view.nu          # Interactive CLI dashboard (shell)
 bash .collection/view.sh        # Interactive CLI dashboard (POSIX shell)
 open .collection/dashboard.html # Static HTML viewer
 ```
@@ -145,7 +120,16 @@ scanner_config: {}
 
 **Custom Plugins:** Implement the `CollectionScanner` interface. Copy the template from `plugins/template/plugin_template.py` and modify existing plugins as references.
 
-## Pipeline Stages
+## Why This Approach?
+
+General file organizers chase "never think about files again" but usually end up with mediocre generic sorting. Collectivist focuses on **intentional collections** where each item matters, enabling:
+
+- **Depth over breadth**: Domain-specific intelligence instead of one-size-fits-all rules
+- **Curation system**: Ongoing pattern learning and intelligent reorganization (standard level)
+- **Deterministic outputs**: Pattern learning is persisted explicitly in schema and index files, preserving deterministic outputs given the same learned state
+- **Documentation as artifact**: READMEs become real knowledge repositories
+
+## 🔗 Workflow Stages
 
 ### Stage 1: Analyzer
 
@@ -159,7 +143,7 @@ python -m .collection analyze ~/repos
 python -m .collection analyze ~/repos repositories
 ```
 
-### Stage 2: Scanner
+### Stage 2: Indexer
 
 Discovers items and extracts metadata using domain-specific plugin.
 
@@ -187,41 +171,13 @@ Transforms YAML index into formatted output artifact (markdown, html, etc).
 python -m .collection render ~/repos
 ```
 
-## Development
-
-**Testing with existing .repos collection:**
-
-```bash
-# Test with force-type to skip LLM detection
-python -m .collection update ~/repos --force-type repositories
-
-# Validate output matches original system
-diff ~/repos/README.md <expected>
-```
-
-## 🚫 What Collectivist Is Not
-
-**Not a general file organizer.** For Downloads auto-sorting, check out llama-fs or Local-File-Organizer.
-
-Collectivist excels at **intentional collections** you care about enough to give structure and meaning.
-
-## 🏛️ Architecture
-
-- **Collection-first design**: Intentional collections enable domain depth
-- **Two-tier system**: Minimal (indexing + descriptions) + Standard (ongoing curation)
-- **Hybrid Python/Nushell**: Beautiful CLI experiences with data processing power
-- **Zero-install minimal mode**: Drop folder, works immediately
-- **LLM provider abstraction**: Local + cloud with unified interface
-- **Plugin architecture**: Extensible scanners for new collection types
-- **Deterministic outputs**: Same input → same beautiful results
-
 ## 📅 Roadmap
 
 ### Complete: Minimal Level MVP
 - **Zero-install drop-in system** - `.collection/` folder works anywhere
 - **LLM-powered collection analysis** - Auto-detects repository, research, media, creative, dataset types
 - **Domain-specific intelligence** - Git metadata, EXIF, citations, schema inference
-- **Hybrid Python/Nushell outputs** - Beautiful CLI + multiple formats (MD, HTML, JSON)
+- **Hybrid Python/shell outputs** - Beautiful CLI + multiple formats (MD, HTML, JSON)
 - **Self-contained architecture** - All code + deps in one folder
 
 ### Next: Standard Level (Schema Evolution)
