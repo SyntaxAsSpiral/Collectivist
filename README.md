@@ -14,7 +14,7 @@
 - **Multi-format outputs**: Markdown, HTML, JSON, interactive Nushell scripts
 - **Collection types**: Repositories, Obsidian vaults, documents, media files, research papers, creative projects, datasets
 
-## 🌐 Installation
+## Installation
 
 ### 🧺 Minimal Zero-Install (Analyze + Index + Describe)
 ```bash
