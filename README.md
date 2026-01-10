@@ -13,29 +13,6 @@
 - **Multi-format outputs**: Markdown, HTML, JSON, interactive Nushell scripts
 - **Collection types**: Repositories, Obsidian vaults, research papers, media libraries, creative projects, datasets
 
-## 🔌 Plugin System
-
-Collectivist supports modular plugins for different collection types. Built-in plugins include:
-
-- **repositories** - Git repository collections with metadata extraction
-- **obsidian** - Obsidian vault collections with rich knowledge graph metadata
-
-### Creating New Plugins
-
-Use the built-in scaffolding to create new collection type plugins:
-
-```bash
-# Install dependencies
-npm install
-
-# Generate a new plugin
-npm run new:plugin
-
-# Follow the prompts to configure your plugin
-```
-
-Plugins follow the `CollectionScanner` interface and are automatically registered on import.
-
 ## Why This Approach?
 
 General file organizers chase "never think about files again" but usually end up with mediocre generic sorting. Collectivist focuses on **intentional collections** where each item matters, enabling:
@@ -178,50 +155,13 @@ exclude_hidden: true
 scanner_config: {}
 ```
 
-## 🔌 Plugins
+## 🔌 Plugin Architecture
 
-### Repository Scanner
+**Built-in Plugins:**
+- **repositories** - Git repository collections with metadata extraction and status tracking
+- **obsidian** - Obsidian vault collections with rich knowledge graph metadata
 
-Scans directories containing git repositories.
-
-**Features:**
-- Git status tracking (up_to_date, updates_available, error, no_remote, not_a_repo)
-- Auto-pull support via `always_pull` flag
-- README-based description generation
-
-### Creating Custom Plugins
-
-Implement the `CollectionScanner` interface:
-
-```python
-from plugin_interface import CollectionScanner, CollectionItem, PluginRegistry
-
-class MyScanner(CollectionScanner):
-    def get_name(self) -> str:
-        return "my_collection_type"
-
-    def get_categories(self) -> List[str]:
-        return ["category1", "category2"]
-
-    def detect(self, path: Path) -> bool:
-        # Return True if this scanner handles this path
-        pass
-
-    def scan(self, root_path: Path, config: Dict) -> List[CollectionItem]:
-        # Discover items and extract metadata
-        pass
-
-    def get_description_prompt_template(self) -> str:
-        # Return LLM prompt template for descriptions
-        pass
-
-    def get_content_for_description(self, item: CollectionItem) -> str:
-        # Extract content for LLM analysis
-        pass
-
-# Register plugin
-PluginRegistry.register("my_collection_type", MyScanner)
-```
+**Creating Custom Plugins:** Implement the `CollectionScanner` interface from `plugins/plugin_interface.py`. Copy and modify existing plugins as templates.
 
 ## LLM Configuration
 
