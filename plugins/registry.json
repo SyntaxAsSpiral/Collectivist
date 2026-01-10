@@ -38,6 +38,15 @@
       "categories": ["photography", "music_audio", "videos_films", "art_design", "screenshots", "podcasts", "presentations"],
       "file_types": ["file"],
       "detection_threshold": 10
+    },
+    "fallback": {
+      "version": "1.0.0",
+      "description": "Fallback scanner for mixed or unidentified collections",
+      "url": "https://raw.githubusercontent.com/SyntaxAsSpiral/Collectivist/main/plugins/fallback.py",
+      "sha256": "",
+      "categories": ["documents", "media_files", "code_projects", "data_files", "archives", "configuration", "utilities", "miscellaneous"],
+      "file_types": ["dir", "file"],
+      "detection_threshold": 1
     }
   }
 }

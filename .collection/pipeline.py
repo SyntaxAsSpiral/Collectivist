@@ -20,6 +20,19 @@ from organic import ContentProcessor
 import repository_scanner  # noqa: F401
 import fallback_scanner  # noqa: F401
 
+# Import additional plugins from plugins directory
+import sys
+plugins_path = Path(__file__).parent.parent / 'plugins'
+if plugins_path.exists():
+    sys.path.insert(0, str(plugins_path))
+    try:
+        import media  # noqa: F401
+        import documents  # noqa: F401
+        import obsidian  # noqa: F401
+        import fallback as fallback_plugin  # noqa: F401
+    except ImportError:
+        pass  # Plugins not available
+
 
 def load_collection_config(collection_path: Path) -> Dict[str, Any]:
     """Load collection.yaml schema configuration"""
@@ -85,7 +98,8 @@ def get_workflow_config_from_collection(collection_path: Path) -> Dict[str, Any]
 
 def save_index(items: list[CollectionItem], index_path: Path, collection_overview: Optional[str] = None):
     """Save items to collection-index.yaml with optional collection overview"""
-    data = []
+    # Convert items to dictionaries
+    items_data = []
     for item in items:
         item_dict = {
             'short_name': item.short_name,
@@ -102,15 +116,21 @@ def save_index(items: list[CollectionItem], index_path: Path, collection_overvie
         if item.metadata:
             item_dict.update(item.metadata)
 
-        data.append(item_dict)
+        items_data.append(item_dict)
+
+    # Create the complete document structure
+    if collection_overview:
+        # Save as a document with collection_overview and items
+        document = {
+            'collection_overview': collection_overview,
+            'items': items_data
+        }
+    else:
+        # Save as direct array for backward compatibility
+        document = items_data
 
     with open(index_path, 'w', encoding='utf-8') as f:
-        if collection_overview:
-            # Write overview first
-            f.write(f"collection_overview: {yaml.dump(collection_overview).strip()}\n\n")
-        
-        # Write items as direct array
-        yaml.dump(data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+        yaml.dump(document, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
 
 
 def load_index(index_path: Path) -> tuple[list[CollectionItem], Optional[str]]:
@@ -121,53 +141,22 @@ def load_index(index_path: Path) -> tuple[list[CollectionItem], Optional[str]]:
     with open(index_path, 'r', encoding='utf-8') as f:
         data = yaml.safe_load(f) or []
 
-    # Handle both old format (list) and new format (dict with collection_overview)
+    # Handle both formats: new format (dict with collection_overview) and old format (direct list)
     collection_overview = None
-    if isinstance(data, dict) and 'collection_overview' in data:
-        collection_overview = data['collection_overview']
-        # Items should be the rest of the data or under 'items' key
-        items_data = [v for k, v in data.items() if k != 'collection_overview' and isinstance(v, dict)]
-        if not items_data and 'items' in data:
-            items_data = data['items']
+    items_data = []
+    
+    if isinstance(data, dict):
+        # New format: document with collection_overview and items
+        collection_overview = data.get('collection_overview')
+        items_data = data.get('items', [])
     elif isinstance(data, list):
+        # Old format: direct array of items
         items_data = data
     else:
-        # Handle the expected format where overview is at top level and items are direct array
-        # We need to parse this differently - let's read the file as text first
-        with open(index_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        if content.startswith('collection_overview:'):
-            # Split on the first occurrence of a YAML list item
-            lines = content.split('\n')
-            overview_lines = []
-            items_lines = []
-            in_items = False
-            
-            for line in lines:
-                if line.strip().startswith('- ') and not in_items:
-                    in_items = True
-                    items_lines.append(line)
-                elif in_items:
-                    items_lines.append(line)
-                else:
-                    overview_lines.append(line)
-            
-            # Parse overview
-            if overview_lines:
-                overview_yaml = '\n'.join(overview_lines)
-                overview_data = yaml.safe_load(overview_yaml)
-                collection_overview = overview_data.get('collection_overview') if isinstance(overview_data, dict) else None
-            
-            # Parse items
-            if items_lines:
-                items_yaml = '\n'.join(items_lines)
-                items_data = yaml.safe_load(items_yaml) or []
-            else:
-                items_data = []
-        else:
-            items_data = data if isinstance(data, list) else []
+        # Fallback: treat as empty
+        items_data = []
 
+    # Convert to CollectionItem objects
     items = []
     for item_data in items_data:
         # Extract standard fields
@@ -400,14 +389,26 @@ def run_full_pipeline(
             print("STAGE 4: README GENERATOR - Documentation Generation")
             print("=" * 60)
 
-        from readme_generator import generate_collection
+        from readme_generator import generate_collection, generate_html_collection
 
+        # Generate markdown documentation
         readme_path = collection_path / 'Collection.md'
         generate_collection(
             items=items,
             collection_name=config['name'],
             collection_type=collection_type,
             output_path=readme_path,
+            collection_overview=collection_overview,
+            event_emitter=emitter
+        )
+
+        # Generate HTML index
+        html_path = collection_path / 'Collection.html'
+        generate_html_collection(
+            items=items,
+            collection_name=config['name'],
+            collection_type=collection_type,
+            output_path=html_path,
             collection_overview=collection_overview,
             event_emitter=emitter
         )

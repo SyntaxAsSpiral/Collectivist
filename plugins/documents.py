@@ -11,7 +11,20 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 import yaml
 
-from .plugin_interface import CollectionScanner, CollectionItem, PluginRegistry
+# Document metadata extraction libraries
+try:
+    import PyPDF2
+    PYPDF2_AVAILABLE = True
+except ImportError:
+    PYPDF2_AVAILABLE = False
+
+try:
+    from docx import Document
+    PYTHON_DOCX_AVAILABLE = True
+except ImportError:
+    PYTHON_DOCX_AVAILABLE = False
+
+from plugin_interface import CollectionScanner, CollectionItem, PluginRegistry
 
 
 class DocumentsScanner(CollectionScanner):
@@ -202,36 +215,167 @@ class DocumentsScanner(CollectionScanner):
         return metadata
 
     def _extract_pdf_metadata(self, file_path: Path) -> Dict[str, Any]:
-        """Extract metadata from PDF files."""
+        """Extract metadata from PDF files using PyPDF2."""
         metadata = {}
 
         try:
-            # For now, just basic file info
-            # TODO: Use PyPDF2 or pdfplumber for detailed metadata extraction
-            metadata['has_text_content'] = True  # Assume PDFs have text
-            metadata['word_count'] = 0  # Would need PDF parsing
-            metadata['page_count'] = 0  # Would need PDF parsing
-            metadata['author'] = ''  # Would need PDF parsing
-            metadata['title'] = file_path.stem  # Use filename as title
-        except Exception:
+            if not PYPDF2_AVAILABLE:
+                # Fallback to basic file info
+                metadata['has_text_content'] = True  # Assume PDFs have text
+                metadata['word_count'] = 0
+                metadata['page_count'] = 0
+                metadata['author'] = ''
+                metadata['title'] = file_path.stem
+                return metadata
+
+            # Open PDF with PyPDF2
+            with open(file_path, 'rb') as pdf_file:
+                pdf_reader = PyPDF2.PdfReader(pdf_file)
+                
+                # Basic PDF info
+                metadata['page_count'] = len(pdf_reader.pages)
+                metadata['has_text_content'] = True
+                
+                # Extract metadata from PDF info
+                if pdf_reader.metadata:
+                    pdf_info = pdf_reader.metadata
+                    metadata['title'] = pdf_info.get('/Title', file_path.stem) or file_path.stem
+                    metadata['author'] = pdf_info.get('/Author', '') or ''
+                    metadata['subject'] = pdf_info.get('/Subject', '') or ''
+                    metadata['creator'] = pdf_info.get('/Creator', '') or ''
+                    metadata['producer'] = pdf_info.get('/Producer', '') or ''
+                    metadata['creation_date'] = pdf_info.get('/CreationDate', '') or ''
+                    metadata['modification_date'] = pdf_info.get('/ModDate', '') or ''
+                else:
+                    metadata['title'] = file_path.stem
+                    metadata['author'] = ''
+                    metadata['subject'] = ''
+                    metadata['creator'] = ''
+                    metadata['producer'] = ''
+                    metadata['creation_date'] = ''
+                    metadata['modification_date'] = ''
+                
+                # Extract text content for word count (first few pages only for performance)
+                text_content = ''
+                max_pages_for_text = min(5, len(pdf_reader.pages))  # Limit to first 5 pages
+                
+                for page_num in range(max_pages_for_text):
+                    try:
+                        page = pdf_reader.pages[page_num]
+                        text_content += page.extract_text() + '\n'
+                    except Exception:
+                        continue  # Skip pages that can't be extracted
+                
+                # Calculate word count from extracted text
+                if text_content.strip():
+                    metadata['word_count'] = len(text_content.split())
+                    metadata['char_count'] = len(text_content)
+                    
+                    # Extract first meaningful line as title if no title in metadata
+                    if metadata['title'] == file_path.stem:
+                        lines = text_content.strip().split('\n')
+                        for line in lines[:10]:  # Check first 10 lines
+                            line = line.strip()
+                            if line and len(line) > 5:  # Skip very short lines
+                                metadata['title'] = line[:100]  # Limit title length
+                                break
+                else:
+                    metadata['word_count'] = 0
+                    metadata['char_count'] = 0
+
+        except Exception as e:
+            # If PDF processing fails, provide basic info
             metadata['has_text_content'] = False
+            metadata['word_count'] = 0
+            metadata['page_count'] = 0
+            metadata['author'] = ''
+            metadata['title'] = file_path.stem
+            metadata['error'] = str(e)
 
         return metadata
 
     def _extract_office_metadata(self, file_path: Path) -> Dict[str, Any]:
-        """Extract metadata from Office documents."""
+        """Extract metadata from Office documents using python-docx."""
         metadata = {}
+        file_ext = file_path.suffix.lower()
 
         try:
-            # For now, just basic file info
-            # TODO: Use python-docx, openpyxl, etc. for detailed metadata
-            metadata['has_text_content'] = True  # Assume Office docs have text
-            metadata['word_count'] = 0  # Would need document parsing
-            metadata['page_count'] = 0  # Would need document parsing
-            metadata['author'] = ''  # Would need document parsing
-            metadata['title'] = file_path.stem  # Use filename as title
-        except Exception:
+            if file_ext in ['.docx'] and PYTHON_DOCX_AVAILABLE:
+                # Use python-docx for .docx files
+                doc = Document(file_path)
+                
+                # Document properties
+                core_props = doc.core_properties
+                metadata['title'] = core_props.title or file_path.stem
+                metadata['author'] = core_props.author or ''
+                metadata['subject'] = core_props.subject or ''
+                metadata['keywords'] = core_props.keywords or ''
+                metadata['category'] = core_props.category or ''
+                metadata['comments'] = core_props.comments or ''
+                metadata['created'] = str(core_props.created) if core_props.created else ''
+                metadata['modified'] = str(core_props.modified) if core_props.modified else ''
+                metadata['last_modified_by'] = core_props.last_modified_by or ''
+                
+                # Extract text content
+                text_content = []
+                for paragraph in doc.paragraphs:
+                    if paragraph.text.strip():
+                        text_content.append(paragraph.text.strip())
+                
+                full_text = '\n'.join(text_content)
+                metadata['has_text_content'] = bool(full_text.strip())
+                metadata['word_count'] = len(full_text.split()) if full_text else 0
+                metadata['char_count'] = len(full_text)
+                metadata['paragraph_count'] = len([p for p in doc.paragraphs if p.text.strip()])
+                
+                # Estimate page count (rough approximation: 250 words per page)
+                metadata['page_count'] = max(1, metadata['word_count'] // 250) if metadata['word_count'] > 0 else 1
+                
+                # Extract title from content if not in properties
+                if metadata['title'] == file_path.stem and text_content:
+                    first_line = text_content[0]
+                    if len(first_line) > 5:  # Skip very short lines
+                        metadata['title'] = first_line[:100]  # Limit title length
+                
+            elif file_ext in ['.doc']:
+                # For .doc files, we can't easily extract without additional libraries
+                # Provide basic file info
+                metadata['has_text_content'] = True  # Assume Office docs have text
+                metadata['word_count'] = 0
+                metadata['page_count'] = 1
+                metadata['author'] = ''
+                metadata['title'] = file_path.stem
+                metadata['subject'] = ''
+                metadata['keywords'] = ''
+                metadata['category'] = ''
+                metadata['comments'] = ''
+                metadata['created'] = ''
+                metadata['modified'] = ''
+                metadata['last_modified_by'] = ''
+                
+            else:
+                # Other office formats (xlsx, pptx, etc.)
+                metadata['has_text_content'] = True  # Assume Office docs have text
+                metadata['word_count'] = 0
+                metadata['page_count'] = 1
+                metadata['author'] = ''
+                metadata['title'] = file_path.stem
+                metadata['subject'] = ''
+                metadata['keywords'] = ''
+                metadata['category'] = ''
+                metadata['comments'] = ''
+                metadata['created'] = ''
+                metadata['modified'] = ''
+                metadata['last_modified_by'] = ''
+
+        except Exception as e:
+            # If document processing fails, provide basic info
             metadata['has_text_content'] = False
+            metadata['word_count'] = 0
+            metadata['page_count'] = 1
+            metadata['author'] = ''
+            metadata['title'] = file_path.stem
+            metadata['error'] = str(e)
 
         return metadata
 
@@ -334,17 +478,55 @@ JSON Response:"""
                 with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                     content = f.read()
                 return content[:3000]
-            elif file_ext == '.pdf':
-                # For PDFs, we can't easily extract text without additional libraries
-                # Return filename-based description for now
-                return f"PDF document: {file_path.stem}"
-            elif file_ext in ['.doc', '.docx']:
-                # For Office docs, we can't easily extract text without additional libraries
-                # Return filename-based description for now
-                return f"Office document: {file_path.stem}"
+                
+            elif file_ext == '.pdf' and PYPDF2_AVAILABLE:
+                # Extract text from PDF
+                try:
+                    with open(file_path, 'rb') as pdf_file:
+                        pdf_reader = PyPDF2.PdfReader(pdf_file)
+                        text_content = ''
+                        
+                        # Extract text from first few pages
+                        max_pages = min(3, len(pdf_reader.pages))
+                        for page_num in range(max_pages):
+                            try:
+                                page = pdf_reader.pages[page_num]
+                                text_content += page.extract_text() + '\n'
+                                if len(text_content) > 3000:
+                                    break
+                            except Exception:
+                                continue
+                        
+                        return text_content[:3000] if text_content.strip() else f"PDF document: {file_path.stem}"
+                except Exception:
+                    return f"PDF document: {file_path.stem}"
+                    
+            elif file_ext == '.docx' and PYTHON_DOCX_AVAILABLE:
+                # Extract text from Word document
+                try:
+                    doc = Document(file_path)
+                    text_content = []
+                    
+                    for paragraph in doc.paragraphs:
+                        if paragraph.text.strip():
+                            text_content.append(paragraph.text.strip())
+                            # Stop if we have enough content
+                            if len('\n'.join(text_content)) > 3000:
+                                break
+                    
+                    full_text = '\n'.join(text_content)
+                    return full_text[:3000] if full_text.strip() else f"Word document: {file_path.stem}"
+                except Exception:
+                    return f"Word document: {file_path.stem}"
+                    
+            elif file_ext in ['.doc']:
+                # For .doc files, we can't easily extract text
+                return f"Word document: {file_path.stem}"
+                
             else:
                 # Other document types
                 return f"Document: {file_path.stem}"
+                
         except Exception:
             return f"Document: {file_path.stem}"
 

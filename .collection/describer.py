@@ -57,9 +57,54 @@ class CollectionDescriber:
             for ex in examples
         ])
 
-        # Get prompt template and fill it
+        # Get prompt template and fill it with content and metadata
         prompt_template = self.scanner.get_description_prompt_template()
-        prompt = prompt_template.format(content=content)
+        
+        # Extract metadata fields for template formatting
+        metadata = item.metadata or {}
+        
+        # Prepare template variables
+        template_vars = {
+            'content': content,
+            # Common fields that most scanners might use
+            'word_count': metadata.get('word_count', 0),
+            'file_extension': metadata.get('file_extension', ''),
+            'size': item.size,
+            'name': item.short_name,
+        }
+        
+        # Add scanner-specific metadata fields
+        if hasattr(self.scanner, 'get_name') and self.scanner.get_name() == 'obsidian':
+            # Obsidian-specific fields
+            template_vars.update({
+                'metadata_tags': ', '.join(metadata.get('tags', [])),
+                'has_frontmatter': metadata.get('has_frontmatter', False),
+                'link_count': len(metadata.get('links', [])),
+            })
+        elif hasattr(self.scanner, 'get_name') and self.scanner.get_name() == 'documents':
+            # Documents-specific fields
+            doc_metadata = metadata.get('document_metadata', {})
+            template_vars.update({
+                'page_count': doc_metadata.get('page_count', 0),
+                'author': doc_metadata.get('author', ''),
+                'title': doc_metadata.get('title', ''),
+            })
+        elif hasattr(self.scanner, 'get_name') and self.scanner.get_name() == 'repositories':
+            # Repository-specific fields
+            template_vars.update({
+                'git_status': metadata.get('git_status', ''),
+                'remote_url': metadata.get('remote_url', ''),
+                'branch': metadata.get('branch', ''),
+            })
+        
+        # Format the prompt with available variables
+        try:
+            prompt = prompt_template.format(**template_vars)
+        except KeyError as e:
+            # If template expects a field we don't have, provide a default
+            missing_field = str(e).strip("'")
+            template_vars[missing_field] = ''
+            prompt = prompt_template.format(**template_vars)
 
         # Add examples to context if available
         if example_text:
@@ -386,44 +431,9 @@ def describe_from_index(
 
     # Define save callback for incremental saves with overview
     def save_items_with_overview(updated_items: List[CollectionItem], overview: Optional[str] = None):
-        # Convert back to dicts
-        items_data = []
-        for item in updated_items:
-            item_dict = {
-                'short_name': item.short_name,
-                'type': item.type,
-                'size': item.size,
-                'created': item.created,
-                'modified': item.modified,
-                'accessed': item.accessed,
-                'path': item.path,
-                'description': item.description,
-                'category': item.category,
-                'metadata': item.metadata
-            }
-            items_data.append(item_dict)
-
-        # Create new format with collection_overview at top
-        output_data = {}
-        if overview or existing_overview:
-            output_data['collection_overview'] = overview or existing_overview
-        
-        # Add items as a direct list (not under 'items' key to match expected format)
-        # Based on requirements, the format should be:
-        # collection_overview: "..."
-        # - item1
-        # - item2
-        # So we need to save as a dict with collection_overview + direct list items
-        
-        # Actually, let's check the expected format again - it shows items as direct array
-        # So we'll save in the expected format: overview field + direct item array
-        with open(index_path, 'w', encoding='utf-8') as f:
-            if overview or existing_overview:
-                # Write overview first
-                f.write(f"collection_overview: {yaml.dump(overview or existing_overview).strip()}\n\n")
-            
-            # Write items as direct array
-            yaml.dump(items_data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+        # Use the pipeline save_index function for consistency
+        from pipeline import save_index
+        save_index(updated_items, index_path, overview or existing_overview)
 
     # Generate descriptions with incremental saves (but don't save overview until the end)
     def incremental_save(updated_items: List[CollectionItem]):

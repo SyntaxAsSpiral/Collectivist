@@ -4,3 +4,14 @@ python-dotenv>=1.0.0
 fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
 websockets>=12.0
+
+# Testing dependencies
+hypothesis>=6.0.0  # For property-based testing
+
+# Media metadata extraction dependencies
+Pillow>=10.0.0  # For EXIF data extraction from images
+mutagen>=1.47.0  # For ID3 tag extraction from audio files
+
+# Document metadata extraction dependencies
+PyPDF2>=3.0.0  # For PDF parsing and metadata extraction
+python-docx>=0.8.11  # For Word document metadata extraction

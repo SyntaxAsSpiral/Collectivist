@@ -6,12 +6,29 @@ Scans media collections and extracts rich metadata including EXIF data, audio ta
 
 import os
 import re
+import subprocess
+import json
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 import yaml
 
-from .plugin_interface import CollectionScanner, CollectionItem, PluginRegistry
+# Media metadata extraction libraries
+try:
+    from PIL import Image
+    from PIL.ExifTags import TAGS, GPSTAGS
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
+
+try:
+    from mutagen import File as MutagenFile
+    from mutagen.id3 import ID3NoHeaderError
+    MUTAGEN_AVAILABLE = True
+except ImportError:
+    MUTAGEN_AVAILABLE = False
+
+from plugin_interface import CollectionScanner, CollectionItem, PluginRegistry
 
 
 class MediaScanner(CollectionScanner):
@@ -175,63 +192,319 @@ class MediaScanner(CollectionScanner):
         return metadata
 
     def _extract_image_metadata(self, file_path: Path) -> Dict[str, Any]:
-        """Extract metadata from image files."""
+        """Extract metadata from image files using PIL/Pillow for EXIF data."""
         metadata = {}
 
         try:
-            # For now, just basic file info
-            # TODO: Use PIL/Pillow for EXIF data extraction
-            metadata['dimensions'] = ''  # Would need image parsing
-            metadata['camera'] = ''  # Would need EXIF parsing
-            metadata['location'] = ''  # Would need GPS EXIF parsing
-            metadata['orientation'] = ''  # Would need EXIF parsing
-            # Use filename as basic title
-            metadata['title'] = file_path.stem
-        except Exception:
+            if not PIL_AVAILABLE:
+                # Fallback to basic file info
+                metadata['dimensions'] = ''
+                metadata['camera'] = ''
+                metadata['location'] = ''
+                metadata['orientation'] = ''
+                metadata['title'] = file_path.stem
+                return metadata
+
+            # Open image with PIL
+            with Image.open(file_path) as img:
+                # Basic image info
+                metadata['dimensions'] = f"{img.width}x{img.height}"
+                metadata['format'] = img.format
+                metadata['mode'] = img.mode
+                
+                # Extract EXIF data
+                exif_data = img.getexif()
+                if exif_data:
+                    # Camera information
+                    camera_make = exif_data.get(271, '')  # Make
+                    camera_model = exif_data.get(272, '')  # Model
+                    if camera_make and camera_model:
+                        metadata['camera'] = f"{camera_make} {camera_model}"
+                    elif camera_model:
+                        metadata['camera'] = camera_model
+                    else:
+                        metadata['camera'] = ''
+                    
+                    # Date taken
+                    date_taken = exif_data.get(306, '')  # DateTime
+                    if date_taken:
+                        metadata['date_taken'] = date_taken
+                    
+                    # Orientation
+                    orientation = exif_data.get(274, 1)  # Orientation
+                    metadata['orientation'] = str(orientation)
+                    
+                    # GPS information
+                    gps_info = exif_data.get(34853)  # GPSInfo
+                    if gps_info:
+                        metadata['location'] = self._parse_gps_info(gps_info)
+                    else:
+                        metadata['location'] = ''
+                    
+                    # Camera settings
+                    metadata['iso'] = exif_data.get(34855, '')  # ISOSpeedRatings
+                    metadata['focal_length'] = exif_data.get(37386, '')  # FocalLength
+                    metadata['aperture'] = exif_data.get(33437, '')  # FNumber
+                    metadata['exposure_time'] = exif_data.get(33434, '')  # ExposureTime
+                else:
+                    metadata['camera'] = ''
+                    metadata['location'] = ''
+                    metadata['orientation'] = ''
+                
+                # Use filename as basic title
+                metadata['title'] = file_path.stem
+
+        except Exception as e:
+            # If image processing fails, provide basic info
             metadata['dimensions'] = ''
+            metadata['camera'] = ''
+            metadata['location'] = ''
+            metadata['orientation'] = ''
             metadata['title'] = file_path.stem
+            metadata['error'] = str(e)
 
         return metadata
+
+    def _parse_gps_info(self, gps_info: Dict) -> str:
+        """Parse GPS information from EXIF data."""
+        try:
+            # Extract latitude and longitude
+            lat_ref = gps_info.get(1, '')
+            lat = gps_info.get(2, ())
+            lon_ref = gps_info.get(3, '')
+            lon = gps_info.get(4, ())
+            
+            if lat and lon:
+                # Convert to decimal degrees
+                lat_decimal = self._convert_to_degrees(lat)
+                lon_decimal = self._convert_to_degrees(lon)
+                
+                # Apply hemisphere
+                if lat_ref == 'S':
+                    lat_decimal = -lat_decimal
+                if lon_ref == 'W':
+                    lon_decimal = -lon_decimal
+                
+                return f"{lat_decimal:.6f}, {lon_decimal:.6f}"
+        except Exception:
+            pass
+        
+        return ''
+
+    def _convert_to_degrees(self, value) -> float:
+        """Convert GPS coordinates to decimal degrees."""
+        d, m, s = value
+        return float(d) + float(m) / 60.0 + float(s) / 3600.0
 
     def _extract_audio_metadata(self, file_path: Path) -> Dict[str, Any]:
-        """Extract metadata from audio files."""
+        """Extract metadata from audio files using mutagen for ID3 tags."""
         metadata = {}
 
         try:
-            # For now, just basic file info
-            # TODO: Use mutagen or similar for ID3 tag extraction
-            metadata['duration'] = 0  # Would need audio parsing
-            metadata['bitrate'] = 0  # Would need audio parsing
-            metadata['codec'] = ''  # Would need audio parsing
-            metadata['artist'] = ''  # Would need tag parsing
-            metadata['album'] = ''  # Would need tag parsing
-            metadata['title'] = file_path.stem  # Use filename as title
-        except Exception:
+            if not MUTAGEN_AVAILABLE:
+                # Fallback to basic file info
+                metadata['duration'] = 0
+                metadata['bitrate'] = 0
+                metadata['codec'] = ''
+                metadata['artist'] = ''
+                metadata['album'] = ''
+                metadata['title'] = file_path.stem
+                return metadata
+
+            # Load audio file with mutagen
+            audio_file = MutagenFile(file_path)
+            
+            if audio_file is None:
+                # File not supported by mutagen
+                metadata['duration'] = 0
+                metadata['bitrate'] = 0
+                metadata['codec'] = ''
+                metadata['artist'] = ''
+                metadata['album'] = ''
+                metadata['title'] = file_path.stem
+                return metadata
+
+            # Basic audio properties
+            if hasattr(audio_file, 'info'):
+                info = audio_file.info
+                metadata['duration'] = int(getattr(info, 'length', 0))
+                metadata['bitrate'] = getattr(info, 'bitrate', 0)
+                metadata['sample_rate'] = getattr(info, 'sample_rate', 0)
+                metadata['channels'] = getattr(info, 'channels', 0)
+                
+                # Codec information
+                if hasattr(info, 'codec'):
+                    metadata['codec'] = info.codec
+                elif hasattr(info, 'mime'):
+                    metadata['codec'] = info.mime[0] if info.mime else ''
+                else:
+                    metadata['codec'] = file_path.suffix.lstrip('.')
+            else:
+                metadata['duration'] = 0
+                metadata['bitrate'] = 0
+                metadata['codec'] = file_path.suffix.lstrip('.')
+
+            # Extract tags (ID3, Vorbis, etc.)
+            if audio_file.tags:
+                tags = audio_file.tags
+                
+                # Common tag mappings
+                metadata['title'] = self._get_tag_value(tags, ['TIT2', 'TITLE', '\xa9nam']) or file_path.stem
+                metadata['artist'] = self._get_tag_value(tags, ['TPE1', 'ARTIST', '\xa9ART']) or ''
+                metadata['album'] = self._get_tag_value(tags, ['TALB', 'ALBUM', '\xa9alb']) or ''
+                metadata['albumartist'] = self._get_tag_value(tags, ['TPE2', 'ALBUMARTIST', 'aART']) or ''
+                metadata['date'] = self._get_tag_value(tags, ['TDRC', 'DATE', '\xa9day']) or ''
+                metadata['genre'] = self._get_tag_value(tags, ['TCON', 'GENRE', '\xa9gen']) or ''
+                metadata['track'] = self._get_tag_value(tags, ['TRCK', 'TRACKNUMBER', 'trkn']) or ''
+                metadata['disc'] = self._get_tag_value(tags, ['TPOS', 'DISCNUMBER', 'disk']) or ''
+                metadata['composer'] = self._get_tag_value(tags, ['TCOM', 'COMPOSER', '\xa9wrt']) or ''
+            else:
+                metadata['title'] = file_path.stem
+                metadata['artist'] = ''
+                metadata['album'] = ''
+                metadata['albumartist'] = ''
+                metadata['date'] = ''
+                metadata['genre'] = ''
+                metadata['track'] = ''
+                metadata['disc'] = ''
+                metadata['composer'] = ''
+
+        except Exception as e:
+            # If audio processing fails, provide basic info
             metadata['duration'] = 0
             metadata['bitrate'] = 0
+            metadata['codec'] = file_path.suffix.lstrip('.')
+            metadata['artist'] = ''
+            metadata['album'] = ''
             metadata['title'] = file_path.stem
+            metadata['error'] = str(e)
 
         return metadata
 
+    def _get_tag_value(self, tags: Dict, tag_keys: List[str]) -> str:
+        """Get tag value from multiple possible tag keys."""
+        for key in tag_keys:
+            if key in tags:
+                value = tags[key]
+                if isinstance(value, list) and value:
+                    return str(value[0])
+                elif value:
+                    return str(value)
+        return ''
+
     def _extract_video_metadata(self, file_path: Path) -> Dict[str, Any]:
-        """Extract metadata from video files."""
+        """Extract metadata from video files using ffprobe."""
         metadata = {}
 
         try:
-            # For now, just basic file info
-            # TODO: Use ffprobe or similar for video metadata
-            metadata['duration'] = 0  # Would need video parsing
-            metadata['dimensions'] = ''  # Would need video parsing
-            metadata['bitrate'] = 0  # Would need video parsing
-            metadata['codec'] = ''  # Would need video parsing
-            metadata['frame_rate'] = 0  # Would need video parsing
-            metadata['title'] = file_path.stem  # Use filename as title
-        except Exception:
+            # Try to use ffprobe for detailed video metadata
+            ffprobe_data = self._get_ffprobe_data(file_path)
+            
+            if ffprobe_data:
+                # Extract video stream info
+                video_stream = None
+                audio_stream = None
+                
+                for stream in ffprobe_data.get('streams', []):
+                    if stream.get('codec_type') == 'video' and not video_stream:
+                        video_stream = stream
+                    elif stream.get('codec_type') == 'audio' and not audio_stream:
+                        audio_stream = stream
+                
+                # Video properties
+                if video_stream:
+                    width = video_stream.get('width', 0)
+                    height = video_stream.get('height', 0)
+                    metadata['dimensions'] = f"{width}x{height}" if width and height else ''
+                    metadata['codec'] = video_stream.get('codec_name', '')
+                    metadata['bitrate'] = int(video_stream.get('bit_rate', 0))
+                    
+                    # Frame rate
+                    r_frame_rate = video_stream.get('r_frame_rate', '0/1')
+                    if '/' in r_frame_rate:
+                        num, den = r_frame_rate.split('/')
+                        if int(den) > 0:
+                            metadata['frame_rate'] = round(int(num) / int(den), 2)
+                        else:
+                            metadata['frame_rate'] = 0
+                    else:
+                        metadata['frame_rate'] = 0
+                
+                # Audio properties
+                if audio_stream:
+                    metadata['audio_codec'] = audio_stream.get('codec_name', '')
+                    metadata['sample_rate'] = int(audio_stream.get('sample_rate', 0))
+                    metadata['channels'] = int(audio_stream.get('channels', 0))
+                
+                # Duration from format info
+                format_info = ffprobe_data.get('format', {})
+                duration = float(format_info.get('duration', 0))
+                metadata['duration'] = int(duration)
+                
+                # File format
+                metadata['format'] = format_info.get('format_name', '')
+                
+                # Title from metadata
+                format_tags = format_info.get('tags', {})
+                metadata['title'] = (
+                    format_tags.get('title') or 
+                    format_tags.get('Title') or 
+                    file_path.stem
+                )
+                
+                # Other metadata
+                metadata['creation_time'] = format_tags.get('creation_time', '')
+                metadata['encoder'] = format_tags.get('encoder', '')
+                
+            else:
+                # Fallback to basic file info if ffprobe fails
+                metadata['duration'] = 0
+                metadata['dimensions'] = ''
+                metadata['bitrate'] = 0
+                metadata['codec'] = ''
+                metadata['frame_rate'] = 0
+                metadata['title'] = file_path.stem
+
+        except Exception as e:
+            # If video processing fails, provide basic info
             metadata['duration'] = 0
             metadata['dimensions'] = ''
+            metadata['bitrate'] = 0
+            metadata['codec'] = ''
+            metadata['frame_rate'] = 0
             metadata['title'] = file_path.stem
+            metadata['error'] = str(e)
 
         return metadata
+
+    def _get_ffprobe_data(self, file_path: Path) -> Optional[Dict[str, Any]]:
+        """Get video metadata using ffprobe."""
+        try:
+            # Run ffprobe to get JSON metadata
+            cmd = [
+                'ffprobe',
+                '-v', 'quiet',
+                '-print_format', 'json',
+                '-show_format',
+                '-show_streams',
+                str(file_path)
+            ]
+            
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            
+            if result.returncode == 0:
+                return json.loads(result.stdout)
+            else:
+                return None
+                
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError, json.JSONDecodeError):
+            # ffprobe not available or failed
+            return None
 
     def _extract_text_metadata(self, content: str) -> Dict[str, Any]:
         """Extract metadata from text-based documents."""

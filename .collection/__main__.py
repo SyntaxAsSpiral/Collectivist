@@ -37,6 +37,18 @@ from events import create_console_emitter
 import repository_scanner  # noqa: F401
 import fallback_scanner  # noqa: F401
 
+# Import additional plugins from plugins directory
+plugins_path = current_dir.parent / 'plugins'
+if plugins_path.exists():
+    sys.path.insert(0, str(plugins_path))
+    try:
+        import media  # noqa: F401
+        import documents  # noqa: F401
+        import obsidian  # noqa: F401
+        import fallback as fallback_plugin  # noqa: F401
+    except ImportError:
+        pass  # Plugins not available
+
 
 def get_collection_path() -> Path:
     """Get current working directory as collection path"""
