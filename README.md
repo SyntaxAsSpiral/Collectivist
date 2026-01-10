@@ -79,7 +79,12 @@ open .collection/dashboard.html # Static HTML viewer
 
 ### ⚙️ Configuration
 
-Configure LLM providers via environment variables or copy `config.example` to `.env` and edit. See `config.example` for detailed examples.
+Configure LLM providers by copying `config.example` to one of these locations and editing:
+
+1. **`.collection/collectivist.yaml`** - Collection-specific configuration
+2. **`~/.collectivist/config.yaml`** - Global user configuration
+
+See `config.example` for detailed examples and all available options.
 
 ## Architecture
 

@@ -16,12 +16,13 @@ from llm import LLMClient
 class CollectionDescriber:
     """Generates LLM-powered descriptions and categories."""
 
-    def __init__(self, collection_path: Path, collection_dir: Path):
+    def __init__(self, collection_path: Path, collection_dir: Path, llm_client=None):
         """Initialize describer.
 
         Args:
             collection_path: Path to collection directory
             collection_dir: Path to .collection directory
+            llm_client: Optional LLM client instance (auto-loaded if not provided)
         """
         self.collection_path = collection_path
         self.collection_dir = collection_dir
@@ -35,7 +36,7 @@ class CollectionDescriber:
             self.config = {"domain": "repositories"}
 
         # Initialize LLM client
-        self.llm_client = LLMClient.from_env()
+        self.llm_client = llm_client or LLMClient.from_config()
 
         # Get categories for this domain
         self.categories = self.config.get("categories", [])

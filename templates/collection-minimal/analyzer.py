@@ -70,16 +70,17 @@ class CollectionAnalyzer:
         }
     }
 
-    def __init__(self, collection_path: Path, collection_dir: Path):
+    def __init__(self, collection_path: Path, collection_dir: Path, llm_client=None):
         """Initialize analyzer.
 
         Args:
             collection_path: Path to collection directory
             collection_dir: Path to .collection directory
+            llm_client: Optional LLM client instance (auto-loaded if not provided)
         """
         self.collection_path = collection_path
         self.collection_dir = collection_dir
-        self.llm_client = LLMClient.from_env()
+        self.llm_client = llm_client or LLMClient.from_config()
 
     def analyze(self, force_type: Optional[str] = None) -> None:
         """Analyze collection and generate configuration.

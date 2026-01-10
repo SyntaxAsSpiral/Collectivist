@@ -76,39 +76,66 @@ class LLMClient:
         return default_models.get(self.provider, "default-model")
 
     @classmethod
-    def from_env(cls) -> 'LLMClient':
-        """Create client from environment variables.
+    def from_config(cls, config_path: Path = None) -> 'LLMClient':
+        """Create client from config file.
 
-        Looks for:
-        - COLLECTIVIST_LLM_PROVIDER (default: lmstudio)
-        - COLLECTIVIST_LLM_API_KEY
-        - COLLECTIVIST_LLM_BASE_URL
-        - COLLECTIVIST_LLM_MODEL
+        Looks for config in this order:
+        1. Specified config_path
+        2. .collection/collectivist.yaml (collection-specific config)
+        3. ~/.collectivist/config.yaml (global config)
+        4. Environment variables (fallback)
+
+        Args:
+            config_path: Optional specific config file path
         """
-        provider = os.getenv("COLLECTIVIST_LLM_PROVIDER", "lmstudio")
-        api_key = os.getenv("COLLECTIVIST_LLM_API_KEY")
-        base_url = os.getenv("COLLECTIVIST_LLM_BASE_URL")
-        model = os.getenv("COLLECTIVIST_LLM_MODEL")
+        config = {}
 
-        # Try to load from .dev/.env if it exists
-        dev_env = Path.home() / ".dev" / ".env"
-        if dev_env.exists():
-            try:
-                with open(dev_env, 'r') as f:
-                    for line in f:
-                        line = line.strip()
-                        if line.startswith("LLM_PROVIDER="):
-                            provider = line.split("=", 1)[1].strip()
-                        elif line.startswith("LLM_API_KEY="):
-                            api_key = line.split("=", 1)[1].strip()
-                        elif line.startswith("LLM_BASE_URL="):
-                            base_url = line.split("=", 1)[1].strip()
-                        elif line.startswith("LLM_MODEL="):
-                            model = line.split("=", 1)[1].strip()
-            except Exception:
-                pass  # Ignore .env reading errors
+        # Priority 1: Specified config file
+        if config_path and config_path.exists():
+            config = cls._load_config_file(config_path)
 
-        return cls(provider, api_key, base_url, model)
+        # Priority 2: Collection-specific config (.collection/collectivist.yaml)
+        elif Path(".collection/collectivist.yaml").exists():
+            config = cls._load_config_file(Path(".collection/collectivist.yaml"))
+
+        # Priority 3: Global config (~/.collectivist/config.yaml)
+        elif (Path.home() / ".collectivist" / "config.yaml").exists():
+            config = cls._load_config_file(Path.home() / ".collectivist" / "config.yaml")
+
+        # Priority 4: Environment variables (fallback)
+        else:
+            config = cls._load_from_env()
+
+        return cls(
+            provider=config.get("llm_provider", "lmstudio"),
+            api_key=config.get("llm_api_key"),
+            base_url=config.get("llm_base_url"),
+            model=config.get("llm_model")
+        )
+
+    @classmethod
+    def _load_config_file(cls, config_path: Path) -> dict:
+        """Load configuration from YAML file."""
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                return yaml.safe_load(f) or {}
+        except Exception:
+            return {}
+
+    @classmethod
+    def _load_from_env(cls) -> dict:
+        """Load configuration from environment variables (legacy fallback)."""
+        return {
+            "llm_provider": os.getenv("COLLECTIVIST_LLM_PROVIDER", "lmstudio"),
+            "llm_api_key": os.getenv("COLLECTIVIST_LLM_API_KEY"),
+            "llm_base_url": os.getenv("COLLECTIVIST_LLM_BASE_URL"),
+            "llm_model": os.getenv("COLLECTIVIST_LLM_MODEL")
+        }
+
+    @classmethod
+    def from_env(cls) -> 'LLMClient':
+        """Legacy method for backward compatibility."""
+        return cls.from_config()
 
     def chat(self, messages: List[Dict[str, str]], temperature: float = 0.1) -> str:
         """Send chat completion request.

@@ -64,6 +64,12 @@ Collection Types Supported:
     )
 
     parser.add_argument(
+        "--config",
+        type=str,
+        help="Path to custom config file (default: auto-detect)"
+    )
+
+    parser.add_argument(
         "--verbose", "-v",
         action="store_true",
         help="Verbose output"
@@ -72,8 +78,15 @@ Collection Types Supported:
     args = parser.parse_args()
 
     try:
-        # Initialize pipeline
-        pipeline = CollectionPipeline()
+        # Initialize LLM client with config
+        from llm import LLMClient
+        from pathlib import Path
+
+        config_path = Path(args.config) if args.config else None
+        llm_client = LLMClient.from_config(config_path)
+
+        # Initialize pipeline with LLM client
+        pipeline = CollectionPipeline(llm_client=llm_client)
 
         if args.command == "analyze":
             if args.force_type:

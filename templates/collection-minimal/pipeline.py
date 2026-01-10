@@ -14,7 +14,7 @@ from typing import Optional
 import yaml
 
 from analyzer import CollectionAnalyzer
-from scanner import CollectionScanner
+from indexer import CollectionIndexer
 from describer import CollectionDescriber
 from renderer import CollectionRenderer
 
@@ -22,11 +22,12 @@ from renderer import CollectionRenderer
 class CollectionPipeline:
     """Main pipeline orchestrator for Collectivist minimal level."""
 
-    def __init__(self, collection_path: Optional[Path] = None):
+    def __init__(self, collection_path: Optional[Path] = None, llm_client=None):
         """Initialize pipeline for a collection.
 
         Args:
             collection_path: Path to collection directory (defaults to cwd)
+            llm_client: Optional LLM client instance (auto-loaded if not provided)
         """
         self.collection_path = collection_path or Path.cwd()
         self.collection_dir = self.collection_path / ".collection"
@@ -35,9 +36,9 @@ class CollectionPipeline:
         self.collection_dir.mkdir(exist_ok=True)
 
         # Initialize components
-        self.analyzer = CollectionAnalyzer(self.collection_path, self.collection_dir)
-        self.scanner = CollectionScanner(self.collection_path, self.collection_dir)
-        self.describer = CollectionDescriber(self.collection_path, self.collection_dir)
+        self.analyzer = CollectionAnalyzer(self.collection_path, self.collection_dir, llm_client)
+        self.indexer = CollectionIndexer(self.collection_path, self.collection_dir)
+        self.describer = CollectionDescriber(self.collection_path, self.collection_dir, llm_client)
         self.renderer = CollectionRenderer(self.collection_path, self.collection_dir)
 
     def analyze(self, force_type: Optional[str] = None) -> None:
