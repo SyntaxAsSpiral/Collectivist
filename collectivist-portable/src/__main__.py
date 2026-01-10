@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Collectivist CLI Entry Point
-Usage: python .collection/__main__.py <command> [options]
-   or: python -m collection <command> [options] (if collection is in PYTHONPATH)
+Usage: python .collection/src/__main__.py <command> [options]
+   or: python -m .collection.src <command> [options] (if .collection is in PYTHONPATH)
 
 Commands:
   analyze   - Detect collection type and generate collection.yaml
@@ -217,7 +217,7 @@ def cmd_update(args):
 def main():
     """Main CLI entry point"""
     parser = argparse.ArgumentParser(
-        prog="python .collection/__main__.py",
+        prog="python .collection/src/__main__.py",
         description="Collectivist - AI-powered collection curator",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
