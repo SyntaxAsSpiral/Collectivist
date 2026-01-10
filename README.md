@@ -18,8 +18,8 @@
 ## Installation
 
 ### 🧺 Minimal Zero-Install (Analyze + Index + Describe)
-1) Clone repo
-2) Copy .collection/ to your collection folder to be curated.<br>
+#### 1) Clone repo
+#### 2) Copy .collection/ to your collection folder to be curated.<br>
 **OR**:<br>
 ```bash
 # Download .collection/ template from releases
@@ -30,15 +30,20 @@ unzip collection-minimal.zip
 cp -r .collection ~/my-repos/
 cd ~/my-repos
 ```
-3) Start using immediately
+
+#### (Install Python 3 if needed)
+| Operating System | Installation Command |
+| :--- | :--- |
+| Ubuntu / Debian | `sudo apt update && sudo apt install python3` |
+| macOS (via Homebrew) | `brew install python` |
+| Windows (via Winget) | `winget install Python.Python.3.12` |
+| Fedora | `sudo dnf install python3` |
+
+
+#### 3) Start using immediately
 ```bash
 python -m .collection analyze
 ```
-Operating System,Installation Command
-Ubuntu / Debian,sudo apt update && sudo apt install python3
-macOS (via Homebrew),brew install python
-Windows (via Winget),winget install Python.Python.3.12
-Fedora,sudo dnf install python3
 
 ### 🎮 Standard Installation (Interactive UI + Curation Loop + Scheduling + Automation)
 ```bash
