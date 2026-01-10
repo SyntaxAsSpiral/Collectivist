@@ -11,10 +11,7 @@ from datetime import datetime
 import sys
 import os
 
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / '.index'))
-
-from plugin_interface import CollectionScanner, CollectionItem, PluginRegistry
+from .plugin_interface import CollectionScanner, CollectionItem, PluginRegistry
 
 
 class RepositoryScanner(CollectionScanner):

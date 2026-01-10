@@ -1,0 +1,25 @@
+{
+  "name": "collectivist",
+  "version": "1.0.0",
+  "description": "**AI-powered collection curator** for intentional collections. Transforms semantically coherent hoards into living documentation substrates with LLM-powered organization and curation.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "new:plugin": "hygen plugin new"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SyntaxAsSpiral/collectivist.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/SyntaxAsSpiral/collectivist/issues"
+  },
+  "homepage": "https://github.com/SyntaxAsSpiral/collectivist#readme",
+  "devDependencies": {
+    "hygen": "^6.2.11"
+  }
+}

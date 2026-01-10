@@ -13,6 +13,29 @@
 - **Multi-format outputs**: Markdown, HTML, JSON, interactive Nushell scripts
 - **Collection types**: Repositories, Obsidian vaults, research papers, media libraries, creative projects, datasets
 
+## 🔌 Plugin System
+
+Collectivist supports modular plugins for different collection types. Built-in plugins include:
+
+- **repositories** - Git repository collections with metadata extraction
+- **obsidian** - Obsidian vault collections with rich knowledge graph metadata
+
+### Creating New Plugins
+
+Use the built-in scaffolding to create new collection type plugins:
+
+```bash
+# Install dependencies
+npm install
+
+# Generate a new plugin
+npm run new:plugin
+
+# Follow the prompts to configure your plugin
+```
+
+Plugins follow the `CollectionScanner` interface and are automatically registered on import.
+
 ## Why This Approach?
 
 General file organizers chase "never think about files again" but usually end up with mediocre generic sorting. Collectivist focuses on **intentional collections** where each item matters, enabling:
