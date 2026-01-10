@@ -6,7 +6,7 @@ Zero-install collection curator. Drop this .collection/ folder into any director
 containing files you want to organize as an intentional collection.
 
 Usage:
-    python -m .collection analyze    # Analyze directory and create config
+    python -m .collection analyze    # Initialize collection (WARNING: resets schema evolution)
     python -m .collection update     # Full pipeline: scan → describe → render
     python -m .collection scan       # Just scan for changes
     python -m .collection describe   # Just generate descriptions

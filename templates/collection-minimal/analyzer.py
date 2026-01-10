@@ -85,6 +85,9 @@ class CollectionAnalyzer:
     def analyze(self, force_type: Optional[str] = None) -> None:
         """Analyze collection and generate configuration.
 
+        WARNING: This will recreate the collection schema from scratch!
+        Any schema evolution from previous curation runs will be lost.
+
         Args:
             force_type: Force specific collection type (skip LLM analysis)
         """
@@ -99,14 +102,30 @@ class CollectionAnalyzer:
         # Generate configuration
         config = self._generate_config(collection_type, confidence, reasoning, llm_response)
 
-        # Save configuration
+        # Check for existing config and warn about reinitialization
         config_path = self.collection_dir / "collection.yaml"
+        if config_path.exists():
+            print("⚠️  WARNING: Collection already exists!")
+            print("   Re-running analyzer will reset schema evolution and curation history.")
+            print("   This action cannot be undone.")
+            print()
+            try:
+                response = input("Continue with reinitialization? (y/N): ").strip().lower()
+                if response != 'y':
+                    print("❌ Reinitialization cancelled by user")
+                    return
+            except (KeyboardInterrupt, EOFError):
+                print("❌ Reinitialization cancelled by user")
+                return
+
+        # Save configuration
         with open(config_path, 'w', encoding='utf-8') as f:
             yaml.dump(config, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
 
-        print(f"📝 Generated config for {collection_type} collection")
+        print(f"📝 Generated fresh config for {collection_type} collection")
         print(f"   Confidence: {confidence:.2f}")
         print(f"   Saved to: {config_path}")
+        print("   Note: Run 'update' to populate with data and start curation loop")
 
     def _analyze_with_llm(self) -> tuple[str, float, str]:
         """Use three-phase LLM analysis with intelligent context compilation."""

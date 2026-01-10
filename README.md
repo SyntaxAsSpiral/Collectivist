@@ -69,14 +69,24 @@ python -m .collection analyze
 cp -r .collection ~/my-collection/
 cd ~/my-collection
 
-# 3. Analyze and organize
-python -m .collection analyze   # LLM detects collection type
-python -m .collection update    # Full pipeline: scan → describe → render
+# 3. Initialize and run curation loop
+python -m .collection analyze   # ⚠️ Initialize collection (resets schema evolution)
+python -m .collection update    # Full pipeline + curation loop
 
 # 4. View results
 nu .collection/view.nu          # Interactive CLI dashboard
 open .collection/dashboard.html # Static HTML viewer
 ```
+
+### ⚠️ Reinitialization Warning
+
+Running `python -m .collection analyze` again will **reset your collection's schema evolution and curation history**. This action cannot be undone.
+
+- **Use `analyze`** only for: First-time setup, major collection restructuring
+- **Use `update`** for: Regular curation loop (preserves schema evolution)
+- **Schema evolution** from the Curator is lost when re-analyzing
+
+The curation loop is designed for continuous improvement - avoid reinitialization unless necessary!
 
 #### Collection Types Auto-Detected
 - **Repositories**: Git-aware scanning, commit summaries, category taxonomy
