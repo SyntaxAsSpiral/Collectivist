@@ -105,7 +105,6 @@ Configure LLM providers by copying `config.example` to one of these locations an
 2. **`.collection/collectivist.md`** - Collection config embedded in Markdown (Obsidian-friendly)
 3. **`collectivist.md`** - Collection root config (Obsidian users - put in vault root)
 4. **`~/.collectivist/config.yaml`** - Global user configuration
-5. **`~/.collectivist/config.md`** - Global config in Markdown
 
 See `config.example` (YAML) and `config.example.md` (Markdown-embedded) for examples.
 
