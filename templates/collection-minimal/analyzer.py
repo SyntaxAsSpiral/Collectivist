@@ -209,7 +209,7 @@ Available collection types:
 - creative: Design projects, artwork, and creative assets
 - datasets: Data files, CSVs, and structured datasets
 
-If this doesn't match any known types, you can specify "custom" and provide a custom schema. For custom collections, focus on the high-level organizational structure rather than deep file hierarchies.
+If this doesn't match any known types, you can specify "custom" and provide a custom schema. For custom collections, suggest appropriate categories based on the apparent content and purpose.
 
 Return JSON:
 {
@@ -348,7 +348,6 @@ Return JSON:
             "scanner": {
                 "plugin": "generic",  # Use generic scanner for custom types
                 "config": {
-                    "max_depth": 2,  # Stay close to top for custom collections
                     "exclude_patterns": [
                         "*/node_modules/*",
                         "*/.venv/*",
@@ -356,13 +355,14 @@ Return JSON:
                         "*/.git/*",
                         "*/.DS_Store",
                         "*/Thumbs.db",
-                        "*/steamapps/common/*",  # Skip deep game files in Steam
-                        "*/__pycache__/*",
                         "*/.pytest_cache/*",
-                        "*/node_modules/*",
                         "*/target/*",  # Rust build artifacts
                         "*/build/*",   # Build directories
                         "*/dist/*",    # Distribution directories
+                        "*/.next/*",   # Next.js build
+                        "*/.nuxt/*",   # Nuxt build
+                        "*/coverage/*", # Test coverage
+                        "*/.vscode/*", # Editor settings
                     ]
                 }
             },
