@@ -16,6 +16,7 @@ import yaml
 from analyzer import CollectionAnalyzer
 from indexer import CollectionIndexer
 from describer import CollectionDescriber
+from curator import CollectionCurator
 from renderer import CollectionRenderer
 
 
@@ -39,6 +40,7 @@ class CollectionPipeline:
         self.analyzer = CollectionAnalyzer(self.collection_path, self.collection_dir, llm_client)
         self.indexer = CollectionIndexer(self.collection_path, self.collection_dir)
         self.describer = CollectionDescriber(self.collection_path, self.collection_dir, llm_client)
+        self.curator = CollectionCurator(self.collection_path, self.collection_dir, llm_client)
         self.renderer = CollectionRenderer(self.collection_path, self.collection_dir)
 
     def analyze(self, force_type: Optional[str] = None) -> None:
@@ -58,7 +60,7 @@ class CollectionPipeline:
         self.renderer.render()
 
     def update(self, force_type: Optional[str] = None) -> None:
-        """Run full pipeline: analyze → scan → describe → render."""
+        """Run full pipeline: analyze → index → describe → curate → render."""
         start_time = time.time()
 
         print("🔍 Stage 1: Analyzing collection...")
@@ -70,7 +72,10 @@ class CollectionPipeline:
         print("🧠 Stage 3: Generating descriptions...")
         self.describe()
 
-        print("📝 Stage 4: Rendering outputs...")
+        print("🎯 Stage 4: Analyzing curation opportunities...")
+        self.curator.curate()
+
+        print("📝 Stage 5: Rendering outputs...")
         self.render()
 
         elapsed = time.time() - start_time

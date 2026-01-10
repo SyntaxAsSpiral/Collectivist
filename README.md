@@ -26,9 +26,10 @@ General file organizers chase "never think about files again" but usually end up
 ## 🧬 Pipeline
 
 1. **Analyzer**: LLM inspects structure, determines collection type, generates config
-2. **Indexer**: Domain plugins discover items with rich metadata extraction
-3. **Describer**: LLM generates descriptions and assigns semantic categories
-4. **Curator**: LLM organizes and reindexes collection on scheduled cadence 
+2. **Indexer**: Deterministic domain plugins discover items and extract factual metadata
+3. **Describer**: LLM reviews indexed data + content (READMEs, docs) for descriptions and category assignments
+4. **Curator**: Conservative analysis proposes organizational improvements without breaking stability
+5. **Renderer**: Generates README.md, dashboard, and export formats from curated index 
 
 ## 🌐 Installation
 
