@@ -63,6 +63,8 @@ python -m .collection analyze
 ```
 ### 🤖 Configuration
 
+See `config.example` (YAML) and `config.example.md` (Markdown-embedded) for examples.
+
 Configure LLM providers by copying `config.example` to one of these locations and editing:
 
 1. **`.collection/collectivist.yaml`** - Collection-specific configuration
@@ -105,8 +107,6 @@ The curation loop is designed for continuous improvement - avoid reinitializatio
 - **Creative**: Version tracking, asset linking, format intelligence
 - **Datasets**: Schema inference, sample previews, data provenance
 - **Obsidian**: Knowledge graph analysis, tag networks, link mapping, frontmatter extraction
-
-See `config.example` (YAML) and `config.example.md` (Markdown-embedded) for examples.
 
 ## Collection Schema
 
