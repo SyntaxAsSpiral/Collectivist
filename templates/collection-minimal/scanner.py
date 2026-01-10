@@ -13,6 +13,7 @@ from typing import Dict, Any, List, Optional
 import yaml
 
 from plugins.repositories import RepositoryScanner
+from plugins.generic import GenericScanner
 
 
 class CollectionScanner:
@@ -47,6 +48,7 @@ class CollectionScanner:
         # Map domains to scanner classes
         scanners = {
             "repositories": RepositoryScanner,
+            "generic": GenericScanner,  # For custom collection types
             # Add more scanners as they're implemented
             # "research": ResearchScanner,
             # "media": MediaScanner,
@@ -54,7 +56,7 @@ class CollectionScanner:
             # "datasets": DatasetScanner,
         }
 
-        scanner_class = scanners.get(domain, RepositoryScanner)  # Default fallback
+        scanner_class = scanners.get(domain, GenericScanner)  # Default to generic for unknown types
 
         return scanner_class(
             collection_path=self.collection_path,

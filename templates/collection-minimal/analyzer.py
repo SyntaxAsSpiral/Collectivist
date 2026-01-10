@@ -85,11 +85,12 @@ class CollectionAnalyzer:
             collection_type = force_type
             confidence = 1.0
             reasoning = f"Manually specified as {force_type}"
+            llm_response = None
         else:
-            collection_type, confidence, reasoning = self._analyze_with_llm()
+            collection_type, confidence, reasoning, llm_response = self._analyze_with_llm()
 
         # Generate configuration
-        config = self._generate_config(collection_type, confidence, reasoning)
+        config = self._generate_config(collection_type, confidence, reasoning, llm_response)
 
         # Save configuration
         config_path = self.collection_dir / "collection.yaml"
@@ -111,19 +112,20 @@ class CollectionAnalyzer:
         try:
             # Query LLM
             messages = [
-                {"role": "system", "content": "You are a collection type analyzer. Analyze the provided directory structure and determine the most appropriate collection type."},
+                {"role": "system", "content": "You are a collection type analyzer. Analyze the provided directory structure and determine the most appropriate collection type. If it doesn't match known types, suggest a custom schema."},
                 {"role": "user", "content": prompt}
             ]
 
             response = self.llm_client.chat("llama3.1-8b-instant", messages, temperature=0.1)
             result = self._parse_llm_response(response)
 
-            return result["collection_type"], result["confidence"], result["reasoning"]
+            return result["collection_type"], result["confidence"], result["reasoning"], result
 
         except Exception as e:
             print(f"⚠️  LLM analysis failed: {e}")
             print("🔄 Falling back to heuristic analysis...")
-            return self._fallback_analysis(dir_info)
+            result = self._fallback_analysis(dir_info)
+            return result[0], result[1], result[2], None
 
     def _gather_directory_info(self) -> Dict[str, Any]:
         """Gather information about the collection directory."""
@@ -207,11 +209,16 @@ Available collection types:
 - creative: Design projects, artwork, and creative assets
 - datasets: Data files, CSVs, and structured datasets
 
+If this doesn't match any known types, you can specify "custom" and provide a custom schema.
+
 Return JSON:
 {
-  "collection_type": "one of the types above",
+  "collection_type": "one of the types above, or 'custom'",
   "confidence": 0.0-1.0,
-  "reasoning": "brief explanation of your decision"
+  "reasoning": "brief explanation of your decision",
+  "custom_name": "optional: human-readable name for custom type",
+  "custom_description": "optional: description for custom type",
+  "suggested_categories": ["optional: array of category names for custom type"]
 }
 """
 
@@ -263,8 +270,13 @@ Return JSON:
         # Default to repositories (most common)
         return "repositories", 0.5, "Defaulting to repositories based on general file structure"
 
-    def _generate_config(self, collection_type: str, confidence: float, reasoning: str) -> Dict[str, Any]:
+    def _generate_config(self, collection_type: str, confidence: float, reasoning: str, llm_response: Optional[Dict] = None) -> Dict[str, Any]:
         """Generate collection configuration."""
+        # Handle custom collection types
+        if collection_type not in self.COLLECTION_TYPES:
+            return self._generate_custom_config(collection_type, confidence, reasoning, llm_response)
+
+        # Handle known collection types
         type_info = self.COLLECTION_TYPES[collection_type]
 
         config = {
@@ -292,6 +304,63 @@ Return JSON:
             "metadata_fields": self._get_metadata_fields(collection_type),
             "status_checks": self._get_status_checks(collection_type),
             "categories": type_info["categories"],
+            "output": {
+                "formats": ["markdown", "html", "json", "nushell"],
+                "template": "default"
+            }
+        }
+
+        return config
+
+    def _generate_custom_config(self, collection_type: str, confidence: float, reasoning: str, llm_response: Optional[Dict] = None) -> Dict[str, Any]:
+        """Generate configuration for custom/unknown collection types."""
+        # Extract custom info from LLM response if available
+        custom_name = llm_response.get("custom_name", "Custom Collection") if llm_response else "Custom Collection"
+        custom_description = llm_response.get("custom_description", "Custom collection type") if llm_response else "Custom collection type"
+        suggested_categories = llm_response.get("suggested_categories", ["general", "misc", "other"]) if llm_response else ["general", "misc", "other"]
+
+        # Generate basic metadata fields based on file types we found
+        dir_info = self._gather_directory_info()
+        custom_metadata_fields = ["size", "created", "modified"]
+
+        # Add type-specific fields based on file extensions
+        file_types = dir_info["file_types"]
+        if any(ext in [".jpg", ".png", ".gif", ".mp4", ".mp3"] for ext in file_types):
+            custom_metadata_fields.extend(["dimensions", "duration", "format"])
+        if any(ext in [".pdf", ".docx", ".txt"] for ext in file_types):
+            custom_metadata_fields.extend(["word_count", "author", "language"])
+        if any(ext in [".csv", ".json", ".xml"] for ext in file_types):
+            custom_metadata_fields.extend(["row_count", "column_count", "schema"])
+
+        config = {
+            "collection_id": self.collection_path.name,
+            "domain": "custom",
+            "custom_type": collection_type,
+            "title": custom_name,
+            "description": custom_description,
+            "created": "2026-01-09T15:30:00Z",
+            "analysis": {
+                "confidence": confidence,
+                "reasoning": reasoning,
+                "analyzed_at": "2026-01-09T15:30:00Z",
+                "custom_schema_generated": True
+            },
+            "scanner": {
+                "plugin": "generic",  # Use generic scanner for custom types
+                "config": {
+                    "exclude_patterns": [
+                        "*/node_modules/*",
+                        "*/.venv/*",
+                        "*/__pycache__/*",
+                        "*/.git/*",
+                        "*/.DS_Store",
+                        "*/Thumbs.db"
+                    ]
+                }
+            },
+            "metadata_fields": custom_metadata_fields,
+            "status_checks": ["file_readable"],  # Basic status check for custom types
+            "categories": suggested_categories,
             "output": {
                 "formats": ["markdown", "html", "json", "nushell"],
                 "template": "default"
