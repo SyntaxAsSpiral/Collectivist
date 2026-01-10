@@ -24,172 +24,52 @@ class GenericScanner:
         self.exclude_patterns = config.get("scanner", {}).get("config", {}).get("exclude_patterns", [])
 
     def discover_items(self) -> List[Path]:
-        """Discover items with intelligent depth control for custom collections."""
+        """Discover items for custom collections - stay close to top level."""
         items = []
 
-        # Analyze collection structure first to determine safe recursion depth
-        structure_analysis = self._analyze_collection_structure()
-
-        # Start conservative, expand only if safe
-        max_depth = 1  # Start with just immediate children
-
-        # If collection seems safe to recurse deeper, increase depth
-        if structure_analysis['safe_to_recurse']:
-            max_depth = min(3, structure_analysis['recommended_depth'])
-
-        def should_include_path(path: Path) -> bool:
-            """Check if path should be included based on intelligent analysis."""
-            if self._should_skip(path):
-                return False
-
-            try:
-                rel_path = path.relative_to(self.collection_path)
-                depth = len(rel_path.parts)
-            except ValueError:
-                return False
-
-            return depth <= max_depth
-
-        # Walk with intelligent depth control
-        for root, dirs, files in os.walk(self.collection_path):
-            root_path = Path(root)
-
-            if not should_include_path(root_path):
-                dirs[:] = []  # Don't recurse deeper
-                continue
-
-            # Add this directory as an item if it contains interesting content
-            if self._directory_is_interesting(root_path, files, dirs):
-                items.append(root_path)
-
-                # If this directory has many files, don't add individual files
-                if len(files) > 10:
-                    continue
-
-            # Add representative files from this directory
-            file_items = self._select_representative_files(root_path, files)
-            items.extend(file_items)
-
-        # Ensure we have at least some items
-        if not items:
-            items = self._fallback_discovery()
-
-        return items
-
-    def _analyze_collection_structure(self) -> Dict[str, Any]:
-        """Analyze collection structure to determine safe recursion strategy."""
-        analysis = {
-            'total_files': 0,
-            'total_dirs': 0,
-            'deeply_nested': False,
-            'has_many_files': False,
-            'safe_to_recurse': False,
-            'recommended_depth': 1
-        }
-
-        max_files_per_dir = 0
-        max_depth_seen = 0
-
-        for root, dirs, files in os.walk(self.collection_path):
-            if self._should_skip(Path(root)):
-                dirs[:] = []
-                continue
-
-            try:
-                rel_path = Path(root).relative_to(self.collection_path)
-                depth = len(rel_path.parts)
-                max_depth_seen = max(max_depth_seen, depth)
-
-                file_count = len([f for f in files if not f.startswith('.')])
-                max_files_per_dir = max(max_files_per_dir, file_count)
-
-                analysis['total_files'] += file_count
-                analysis['total_dirs'] += len(dirs)
-
-                # Stop analysis if we see signs of deep nesting
-                if depth > 3 or analysis['total_files'] > 1000:
-                    analysis['deeply_nested'] = True
-                    break
-
-            except ValueError:
-                continue
-
-        # Determine if it's safe to recurse
-        analysis['has_many_files'] = analysis['total_files'] > 100
-        analysis['safe_to_recurse'] = (
-            not analysis['deeply_nested'] and
-            not analysis['has_many_files'] and
-            max_depth_seen <= 2
-        )
-
-        if analysis['safe_to_recurse']:
-            analysis['recommended_depth'] = 2
-        elif analysis['total_dirs'] > analysis['total_files']:
-            # Many directories, few files - probably safe to go to depth 2
-            analysis['recommended_depth'] = 2
-
-        return analysis
-
-    def _directory_is_interesting(self, dir_path: Path, files: List[str], dirs: List[str]) -> bool:
-        """Determine if a directory should be treated as a collection item."""
-        # Empty directories aren't interesting
-        if not files and not dirs:
-            return False
-
-        # Directories with many subdirs are interesting (organizational units)
-        if len(dirs) > 5:
-            return True
-
-        # Directories with important files are interesting
-        important_files = ['readme.md', 'readme.txt', 'package.json', 'setup.py', 'dockerfile']
-        has_important_files = any(f.lower() in important_files for f in files)
-
-        # Directories with many files might be content containers
-        has_many_files = len([f for f in files if not f.startswith('.')]) > 5
-
-        return has_important_files or has_many_files or bool(dirs)
-
-    def _select_representative_files(self, dir_path: Path, files: List[str]) -> List[Path]:
-        """Select a few representative files from a directory."""
-        selected_files = []
-
-        # Filter out hidden files and common uninteresting files
-        interesting_files = [
-            f for f in files
-            if not f.startswith('.') and
-            not f.lower().endswith(('.tmp', '.temp', '.log', '.cache', '.lock'))
-        ]
-
-        # Prioritize certain file types
-        priority_files = []
-        other_files = []
-
-        for f in interesting_files[:10]:  # Limit to first 10 to avoid overload
-            if f.lower() in ['readme.md', 'readme.txt', 'package.json', 'setup.py']:
-                priority_files.append(f)
-            else:
-                other_files.append(f)
-
-        # Select up to 3 files, prioritizing important ones
-        selected_names = (priority_files + other_files)[:3]
-
-        for filename in selected_names:
-            file_path = dir_path / filename
-            if file_path.exists():
-                selected_files.append(file_path)
-
-        return selected_files
-
-    def _fallback_discovery(self) -> List[Path]:
-        """Fallback: just return immediate children."""
-        items = []
+        # For custom collections, just scan immediate children (depth 1)
+        # This keeps it simple and predictable for unknown collection types
         try:
             for item in self.collection_path.iterdir():
                 if not item.name.startswith('.') and not self._should_skip(item):
                     items.append(item)
         except Exception:
             pass
+
+        # If no items found, try a slightly deeper scan (depth 2)
+        if not items:
+            for root, dirs, files in os.walk(self.collection_path):
+                root_path = Path(root)
+
+                # Only go one level deep
+                try:
+                    rel_path = root_path.relative_to(self.collection_path)
+                    if len(rel_path.parts) > 1:
+                        continue
+                except ValueError:
+                    continue
+
+                if self._should_skip(root_path):
+                    continue
+
+                # Add subdirectories
+                for dir_name in dirs:
+                    if not dir_name.startswith('.'):
+                        dir_path = root_path / dir_name
+                        if not self._should_skip(dir_path):
+                            items.append(dir_path)
+
+                # Add a few representative files from root
+                for file in files[:5]:  # Just first 5 files
+                    if not file.startswith('.') and not file.lower().endswith(('.tmp', '.temp', '.log', '.lock')):
+                        file_path = root_path / file
+                        items.append(file_path)
+
+                break  # Only process root level
+
         return items
+
+
 
     def _should_skip(self, path: Path) -> bool:
         """Check if path should be skipped based on exclude patterns."""
