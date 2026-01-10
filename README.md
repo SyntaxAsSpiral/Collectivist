@@ -76,6 +76,10 @@ Running `python -m .collection analyze` again will **reset your collection's sch
 
 The curation loop is designed for continuous improvement - avoid reinitialization unless necessary!
 
+
+
+## Collection Schema
+
 #### Collection Types Auto-Detected
 - **Repositories**: Git-aware scanning, commit summaries, category taxonomy
 - **Research**: Citation extraction, topic clustering, reading status
@@ -83,8 +87,6 @@ The curation loop is designed for continuous improvement - avoid reinitializatio
 - **Creative**: Version tracking, asset linking, format intelligence
 - **Datasets**: Schema inference, sample previews, data provenance
 - **Obsidian**: Knowledge graph analysis, tag networks, link mapping, frontmatter extraction
-
-## Collection Schema
 
 The `collection.yaml` file defines your collection.
 
