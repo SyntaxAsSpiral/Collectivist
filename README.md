@@ -103,8 +103,9 @@ Configure LLM providers by copying `config.example` to one of these locations an
 
 1. **`.collection/collectivist.yaml`** - Collection-specific configuration
 2. **`.collection/collectivist.md`** - Collection config embedded in Markdown (Obsidian-friendly)
-3. **`~/.collectivist/config.yaml`** - Global user configuration
-4. **`~/.collectivist/config.md`** - Global config in Markdown
+3. **`collectivist.md`** - Collection root config (Obsidian users - put in vault root)
+4. **`~/.collectivist/config.yaml`** - Global user configuration
+5. **`~/.collectivist/config.md`** - Global config in Markdown
 
 See `config.example` (YAML) and `config.example.md` (Markdown-embedded) for examples.
 
@@ -167,7 +168,7 @@ scanner_config: {}
 
 **Plugin Discovery:** When you run `analyze`, Collectivist detects your collection type and automatically downloads the appropriate plugin from the remote registry.
 
-**Dotfile Exclusion:** Collectivist automatically excludes dotfiles (`.hidden`) by default to avoid system files, caches, and configuration cluttering your collections.
+**Dotfile Exclusion:** Collectivist automatically excludes dotfiles (`.hidden`) by default to avoid system files, caches, and configuration cluttering your collections. To index dotfile directories, initialize Collectivist from within them.
 
 **Custom Plugins:** Implement the `CollectionScanner` interface from `plugins/plugin_interface.py`. Copy and modify existing plugins as templates.
 
