@@ -89,7 +89,7 @@ llm_provider: lmstudio
 # =============================================================================
 #
 # 🏠 LMStudio: local-model # whatever is loaded in LMStudio
-# 🐳 Ollama: llama3.1 # ?
+# 🐳 Ollama: llama3.1 # (? I dunnot I don't use it 🤷‍♂️)
 # ☁️ OpenRouter: openai/gpt-oss-120b:free # free!
 # ⚡ OpenAI: gpt-5.2
 # 🧠 Anthropic: claude-4.5-sonnet
