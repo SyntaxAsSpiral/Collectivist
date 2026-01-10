@@ -54,7 +54,7 @@ python -m .collection analyze
 
 Configure LLM providers via environment variables or copy `.env.example` to `.env` and edit. See `.env.example` for detailed examples.
 
-## 👩‍🌾 Usage
+## 🧺 Usage
 
 ### Drop-in Workflow
 ```bash
