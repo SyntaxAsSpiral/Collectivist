@@ -45,6 +45,8 @@ cd ~/my-repos
 python -m .collection analyze
 ```
 
+---
+
 ### 🎮 Standard Installation (Interactive UI + Curation Loop + Scheduling + Automation)
 ```bash
 # Coming soon: pip install collectivist
