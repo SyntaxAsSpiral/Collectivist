@@ -82,9 +82,11 @@ open .collection/dashboard.html # Static HTML viewer
 Configure LLM providers by copying `config.example` to one of these locations and editing:
 
 1. **`.collection/collectivist.yaml`** - Collection-specific configuration
-2. **`~/.collectivist/config.yaml`** - Global user configuration
+2. **`.collection/collectivist.md`** - Collection config embedded in Markdown (Obsidian-friendly)
+3. **`~/.collectivist/config.yaml`** - Global user configuration
+4. **`~/.collectivist/config.md`** - Global config in Markdown
 
-See `config.example` for detailed examples and all available options.
+See `config.example` (YAML) and `config.example.md` (Markdown-embedded) for examples.
 
 ## Architecture
 

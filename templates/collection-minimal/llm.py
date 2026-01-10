@@ -94,13 +94,17 @@ class LLMClient:
         if config_path and config_path.exists():
             config = cls._load_config_file(config_path)
 
-        # Priority 2: Collection-specific config (.collection/collectivist.yaml)
+        # Priority 2: Collection-specific config (.collection/collectivist.yaml or .md)
         elif Path(".collection/collectivist.yaml").exists():
             config = cls._load_config_file(Path(".collection/collectivist.yaml"))
+        elif Path(".collection/collectivist.md").exists():
+            config = cls._load_config_file(Path(".collection/collectivist.md"))
 
-        # Priority 3: Global config (~/.collectivist/config.yaml)
+        # Priority 3: Global config (~/.collectivist/config.yaml or .md)
         elif (Path.home() / ".collectivist" / "config.yaml").exists():
             config = cls._load_config_file(Path.home() / ".collectivist" / "config.yaml")
+        elif (Path.home() / ".collectivist" / "config.md").exists():
+            config = cls._load_config_file(Path.home() / ".collectivist" / "config.md")
 
         # Priority 4: Environment variables (fallback)
         else:
@@ -115,12 +119,49 @@ class LLMClient:
 
     @classmethod
     def _load_config_file(cls, config_path: Path) -> dict:
-        """Load configuration from YAML file."""
+        """Load configuration from YAML file or Markdown-embedded YAML."""
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
-                return yaml.safe_load(f) or {}
+                content = f.read()
+
+            # Check if it's a Markdown file with embedded YAML
+            if config_path.suffix.lower() == '.md':
+                yaml_content = cls._extract_yaml_from_markdown(content)
+                if yaml_content:
+                    return yaml.safe_load(yaml_content) or {}
+
+            # Regular YAML file
+            return yaml.safe_load(content) or {}
+
         except Exception:
             return {}
+
+    @classmethod
+    def _extract_yaml_from_markdown(cls, content: str) -> str:
+        """Extract YAML from the first ```yaml fenced code block in Markdown."""
+        # Look for the first ```yaml fenced block
+        yaml_start = content.find('```yaml')
+        if yaml_start == -1:
+            yaml_start = content.find('```yml')  # Also support .yml extension
+
+        if yaml_start == -1:
+            return ""
+
+        # Find the end of the opening fence
+        after_open = content[yaml_start:]
+        newline_pos = after_open.find('\n')
+        if newline_pos == -1:
+            return ""
+
+        # Find the closing fence
+        yaml_content_start = yaml_start + newline_pos + 1
+        yaml_end = content.find('```', yaml_content_start)
+        if yaml_end == -1:
+            return ""
+
+        # Extract and clean the YAML content
+        yaml_text = content[yaml_content_start:yaml_end].strip()
+        return yaml_text if yaml_text else ""
 
     @classmethod
     def _load_from_env(cls) -> dict:
