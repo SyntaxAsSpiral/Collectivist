@@ -61,6 +61,15 @@ python -m .collection analyze
 # Coming soon: pip install collectivist
 # collectivist init ~/my-collection --standard
 ```
+### 🤖 Configuration
+
+Configure LLM providers by copying `config.example` to one of these locations and editing:
+
+1. **`.collection/collectivist.yaml`** - Collection-specific configuration
+2. **`.collection/collectivist.md`** - Collection config embedded in Markdown (Obsidian-friendly)
+3. **`collectivist.md`** - Collection root config (Obsidian users - put in vault root)
+4. **`~/.collectivist/config.yaml`** - Global user configuration
+
 ## Usage
 
 ### Full Drop-in Workflow
@@ -96,15 +105,6 @@ The curation loop is designed for continuous improvement - avoid reinitializatio
 - **Creative**: Version tracking, asset linking, format intelligence
 - **Datasets**: Schema inference, sample previews, data provenance
 - **Obsidian**: Knowledge graph analysis, tag networks, link mapping, frontmatter extraction
-
-### 🤖 Configuration
-
-Configure LLM providers by copying `config.example` to one of these locations and editing:
-
-1. **`.collection/collectivist.yaml`** - Collection-specific configuration
-2. **`.collection/collectivist.md`** - Collection config embedded in Markdown (Obsidian-friendly)
-3. **`collectivist.md`** - Collection root config (Obsidian users - put in vault root)
-4. **`~/.collectivist/config.yaml`** - Global user configuration
 
 See `config.example` (YAML) and `config.example.md` (Markdown-embedded) for examples.
 
