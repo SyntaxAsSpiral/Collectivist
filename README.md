@@ -86,7 +86,8 @@ python -m .collection analyze   # ⚠️ Initialize collection (resets schema ev
 python -m .collection update    # Full pipeline + curation loop
 
 # 4. View results
-nu .collection/view.nu          # Interactive CLI dashboard
+nu .collection/view.nu          # Interactive CLI dashboard (Nushell)
+bash .collection/view.sh        # Interactive CLI dashboard (POSIX shell)
 open .collection/dashboard.html # Static HTML viewer
 ```
 
@@ -142,7 +143,7 @@ scanner_config: {}
 
 **Plugin Discovery:** When you run `analyze`, Collectivist detects your collection type and automatically downloads the appropriate plugin from the remote registry.
 
-**Custom Plugins:** Implement the `CollectionScanner` interface from `plugins/plugin_interface.py`. Copy and modify existing plugins as templates.
+**Custom Plugins:** Implement the `CollectionScanner` interface. Copy the template from `plugins/template/plugin_template.py` and modify existing plugins as references.
 
 ## Pipeline Stages
 
