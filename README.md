@@ -79,7 +79,7 @@ open .collection/dashboard.html # Static HTML viewer
 
 ### ⚙️ Configuration
 
-Configure LLM providers via environment variables or copy `.env.example` to `.env` and edit. See `.env.example` for detailed examples.
+Configure LLM providers via environment variables or copy `config.example` to `.env` and edit. See `config.example` for detailed examples.
 
 ## Architecture
 
