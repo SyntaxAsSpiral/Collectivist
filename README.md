@@ -108,7 +108,7 @@ The curation loop is designed for continuous improvement - avoid reinitializatio
 
 See `config.example` (YAML) and `config.example.md` (Markdown-embedded) for examples.
 
-## Collection Configuration
+## Collection Schema
 
 The `collection.yaml` file defines your collection.
 
