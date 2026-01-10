@@ -88,12 +88,13 @@ llm_provider: lmstudio
 # 🧠 SMART DEFAULTS (Used when llm_model is not specified)
 # =============================================================================
 #
-# 🏠 LMStudio: local-model # whatever is loaded in LMStudio
-# 🐳 Ollama: llama3.1 # (? I dunno I don't use it 🤷‍♂️)
-# ☁️ OpenRouter: openai/gpt-oss-120b:free # free!
+# 🏠 LMStudio: local-model # whatever is loaded in LMStudio (**free!**)
+# ☁️ OpenRouter: openai/gpt-oss-120b:free # **free!**
+# 🎨 Pollination: openai # **free!**
+# 🐳 Ollama: llama3.1 # (? I dunno I don't use it 🤷‍♂️) **free!**
 # ⚡ OpenAI: gpt-5.2
 # 🧠 Anthropic: claude-4.5-sonnet
-# 🎨 Pollination: openai # free!
+
 
 # =============================================================================
 # 🧪 TESTING YOUR CONFIGURATION
