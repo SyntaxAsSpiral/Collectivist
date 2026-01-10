@@ -1,23 +1,39 @@
 # 💮 Collectivist
 
-**AI-powered collection curator** for intentional collections. Transforms semantically coherent hoards into living documentation substrates with LLM-powered organization and curation.
-
-**Not a general file organizer.** Collectivist shines on collections you care about enough to give them structure and meaning.
+**AI-powered curator** for intentional collectors.<br> 
+Transforms semantically coherent hoards into beautiful living documentation substrates with LLM-powered organization and curation.
 
 ## 🌱 Features
 
 - **Domain-specific intelligence**: Git metadata, ID3 tags, EXIF data, citations, and semantic understanding
-- **Collection overview generation**: LLM-powered contextual summaries of complete collections
-- **Curation that feels magical**: Context-aware organization based on actual intent
-- **LLM-powered analysis**: Automatic categorization and rich description generation
-- **Living documentation**: Auto-generated READMEs that become real knowledge artifacts
+- **LLM-powered analysis**: Bespoke categorization and rich description generation (perfect context for agents)
+- **Self-healing documentation**: Collection indices adapt to filesystem changes using semantic diffing and persisted structural memory
+- **Flexible configuration**: All OpenAI compatible providers supported - local (LM Studio, Ollama), cloud (OpenRouter, Pollinations), or custom endpoints
 - **Multi-format outputs**: Markdown documentation, interactive HTML index, JSON export
 - **Collection types**: Repositories, Obsidian vaults, documents, media files, research papers, creative projects, datasets
 
 ## Installation
 
 ### 🧺 Portable Install (Analyze + Index + Describe)
-#### 1) Clone repo or download .zip from latest release. 
+#### Clone repo or download .zip from latest release. 
+
+1. **Extract/copy** the `.collection/` folder to your collection directory
+2. **Run** the initialization script:
+   ```bash
+   # Windows
+   .collection\initialize-collection.bat
+   
+   # Unix/Linux/macOS
+   .collection/initialize-collection.sh
+   ```
+3. **Analyze** your collection:
+   ```bash
+   python .collection/src/__main__.py analyze
+   ```
+4. **Generate** documentation:
+   ```bash
+   python .collection/src/__main__.py update
+   ```
 
 ---
 
@@ -30,8 +46,8 @@
 
 ### 🤖 Configuration
 
-Configure LLM providers by renaming `llm-config.yaml.example` to `llm-config.yaml` and following the instructions to pick a backend + model.  
-
+- Portable version comes pre-configured for LM Studio with GPT-OSS-20b (free!).  You can edit `llm-config.yaml` to choose a different backend or customize your own.   
+-  Obsidian users can drop the `llm-config.md` example as a note into their collection vault folder.
 
 ### ⚠️ Reinitialization Warning
 
