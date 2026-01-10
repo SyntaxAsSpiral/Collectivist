@@ -28,7 +28,7 @@ General file organizers chase "never think about files again" but usually end up
 1. **Analyzer**: LLM inspects structure, determines collection type, generates config
 2. **Indexer**: Deterministic domain plugins discover items and extract factual metadata
 3. **Describer**: LLM reviews indexed data + content (READMEs, docs) for descriptions and category assignments
-4. **Curator**: Conservative analysis proposes organizational improvements without breaking stability
+4. **Curator**: Schema evolution engine analyzes organization effectiveness and evolves collection.yaml for optimal efficacy
 5. **Renderer**: Generates README.md, dashboard, and export formats from curated index 
 
 ## 🌐 Installation
@@ -47,7 +47,7 @@ cd ~/my-repos
 python -m .collection analyze
 ```
 
-### 🎮 Standard Installation (Interactive UI + Curation + Scheduling + Automation)
+### 🎮 Standard Installation (Interactive UI + Curation Loop + Scheduling + Automation)
 ```bash
 # Coming soon: pip install collectivist
 # collectivist init ~/my-collection --standard
@@ -296,11 +296,11 @@ Collectivist excels at **intentional collections** you care about enough to give
 - **Hybrid Python/Nushell outputs** - Beautiful CLI + multiple formats (MD, HTML, JSON)
 - **Self-contained architecture** - All code + deps in one folder
 
-### Next: Standard Level (Interactive Curation)
-- **Vite + Vue frontend** - Modern web interface for ongoing curation
+### Next: Standard Level (Schema Evolution)
+- **Vite + Vue frontend** - Modern web interface for schema evolution
 - **FastAPI backend** - REST API + WebSocket real-time updates
-- **Curation scheduler** - Ongoing pattern learning and reorganization
-- **Intelligent suggestions** - Context-aware organization recommendations
+- **Schema evolution engine** - Curator evolves collection.yaml for optimal organization
+- **Intelligent evolution** - Balances stability with efficacy through hierarchical analysis
 - **LLM provider management** - Easy configuration of models/providers
 
 ### Future: Package Manager & Extensions

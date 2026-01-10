@@ -1,12 +1,25 @@
 """
-Collection Curator - Conservative Curation Engine
+Collection Curator - Schema Evolution Engine
 
-Implements the "architectural critic" approach with hierarchical intervention levels:
+The "Advanced Analyzer" that evolves collection schema over time.
+Takes current schema + collection state → analyzes organization effectiveness → proposes schema improvements.
+
+CORE QUESTIONS:
+- Are files organized effectively under current schema?
+- Are categories accurate, redundant, or optimally useful?
+- Is folder structure conducive to semantic substrate?
+- Should schema evolve for better efficacy while maintaining stability?
+
+BALANCE: Keep schema stable as long as possible while ensuring maximum effectiveness.
+Can't be afraid of mutation, can't be stagnant without efficacy.
+
+GENERATES: Updated collection.yaml schema for next pipeline run.
+Operator manual reorganization gets detected and incorporated.
+
+HIERARCHICAL INTERVENTION (when evolution needed):
 - Level 1: Metadata enrichment (safe, no structural changes)
 - Level 2: Category refinement (moderate, when categories get crowded)
 - Level 3: Structural reorganization (major, for fundamental domain shifts)
-
-Generates proposals.nu script for user review before applying changes.
 """
 
 from pathlib import Path
@@ -33,7 +46,7 @@ class CollectionCurator:
         self.llm_client = llm_client or LLMClient.from_config()
 
     def curate(self) -> None:
-        """Run conservative curation analysis and generate proposals.nu"""
+        """Run schema evolution analysis and update collection.yaml for next run"""
         # Load current index
         index_path = self.collection_dir / "index.yaml"
         if not index_path.exists():
@@ -51,116 +64,293 @@ class CollectionCurator:
         else:
             self.config = {}
 
-        # Analyze collection for curation opportunities
-        analysis = self._analyze_curation_opportunities(index_data)
+        # Analyze collection organization and effectiveness
+        analysis = self._analyze_organization_effectiveness(index_data)
 
-        if not analysis["proposals"]:
-            print("✅ Collection structure is optimal - no curation needed")
+        # Determine if schema evolution is needed
+        evolution_needed = self._should_evolve_schema(analysis)
+
+        if not evolution_needed:
+            print("✅ Schema is effective - maintaining stability")
             return
 
-        # Generate proposals script
-        self._generate_proposals_script(analysis)
+        # Generate evolved schema
+        evolved_config = self._evolve_schema(analysis)
 
-        print(f"🎯 Generated curation proposals in {self.collection_path}/proposals.nu")
-        print("   Review and run: nu proposals.nu")
+        # Generate proposals script for user review
+        self._generate_proposals_script(analysis, evolved_config)
 
-    def _analyze_curation_opportunities(self, index_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Analyze collection for potential curation improvements."""
+        print(f"🎯 Generated schema evolution proposals in {self.collection_path}/proposals.nu")
+        print("   Review changes and run: nu proposals.nu"        print("   This will update collection.yaml for the next pipeline run")
+
+    def _analyze_organization_effectiveness(self, index_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze how well the current schema organizes the collection."""
         items = index_data.get("items", [])
-        categories = self.config.get("categories", [])
+        current_categories = self.config.get("categories", [])
 
-        # Level 1: Check for missing metadata
-        missing_descriptions = sum(1 for item in items if not item.get("description"))
-        missing_categories = sum(1 for item in items if not item.get("category"))
-
-        # Level 2: Check for overcrowded categories
-        category_sizes = {}
-        for item in items:
-            category = item.get("category", "uncategorized")
-            category_sizes[category] = category_sizes.get(category, 0) + 1
-
-        overcrowded_categories = []
-        for category, size in category_sizes.items():
-            if size > 20:  # Threshold for "crowded"
-                overcrowded_categories.append({
-                    "category": category,
-                    "size": size,
-                    "items": [item for item in items if item.get("category") == category][:5]  # Sample
-                })
-
-        # Level 3: Check for domain drift (would need historical analysis)
-
+        # Core analysis questions
         analysis = {
             "total_items": len(items),
-            "categories": categories,
-            "category_sizes": category_sizes,
-            "proposals": []
+            "current_categories": current_categories,
+            "effectiveness_metrics": {},
+            "organizational_issues": [],
+            "evolution_opportunities": []
         }
 
-        # Generate proposals based on findings
-        if missing_descriptions > 0:
-            analysis["proposals"].append({
-                "level": 1,
-                "type": "metadata_enrichment",
-                "description": f"Fill in {missing_descriptions} missing descriptions",
-                "action": "describe_missing_items"
-            })
+        # 1. Are files organized effectively under current schema?
+        category_distribution = self._analyze_category_distribution(items)
+        analysis["effectiveness_metrics"]["category_balance"] = category_distribution
 
-        for crowded in overcrowded_categories:
-            analysis["proposals"].append({
-                "level": 2,
-                "type": "category_refinement",
-                "description": f"Split overcrowded '{crowded['category']}' category ({crowded['size']} items)",
-                "category": crowded["category"],
-                "size": crowded["size"],
-                "action": "propose_category_split"
-            })
+        # 2. Are categories accurate, redundant, or optimally useful?
+        category_effectiveness = self._analyze_category_effectiveness(items, current_categories)
+        analysis["effectiveness_metrics"]["category_effectiveness"] = category_effectiveness
+
+        # 3. Is folder structure conducive to semantic substrate?
+        folder_structure = self._analyze_folder_structure(items)
+        analysis["effectiveness_metrics"]["folder_structure"] = folder_structure
+
+        # 4. Check for operator-induced changes (manual reorganization)
+        operator_changes = self._detect_operator_changes(items)
+        analysis["organizational_issues"].extend(operator_changes)
+
+        # 5. Identify evolution opportunities
+        evolution_opportunities = self._identify_evolution_opportunities(analysis)
+        analysis["evolution_opportunities"] = evolution_opportunities
 
         return analysis
 
-    def _generate_proposals_script(self, analysis: Dict[str, Any]) -> None:
-        """Generate proposals.nu script for user review."""
+    def _should_evolve_schema(self, analysis: Dict[str, Any]) -> bool:
+        """Determine if schema evolution is warranted."""
+        # Evolution triggers:
+        # - Significant organizational issues
+        # - Very unbalanced categories (>3x difference)
+        # - Categories with very low utility (<3 items each)
+        # - Operator changes detected
+
+        issues = len(analysis["organizational_issues"])
+        opportunities = len(analysis["evolution_opportunities"])
+
+        # Require multiple signals before evolving
+        evolution_signals = issues + opportunities
+
+        return evolution_signals >= 2  # Conservative threshold
+
+    def _evolve_schema(self, analysis: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate evolved schema based on analysis."""
+        evolved_config = self.config.copy()
+
+        # Apply evolution opportunities
+        for opportunity in analysis["evolution_opportunities"]:
+            if opportunity["type"] == "category_consolidation":
+                # Remove redundant categories
+                evolved_config["categories"] = [
+                    cat for cat in evolved_config["categories"]
+                    if cat not in opportunity["redundant_categories"]
+                ]
+            elif opportunity["type"] == "category_split":
+                # Add new subcategories
+                evolved_config["categories"].extend(opportunity["new_categories"])
+
+        # Update schema evolution timestamp
+        evolved_config["schema_evolution"] = {
+            "last_evolved": datetime.now().isoformat(),
+            "rationale": "Automated schema evolution for better organization",
+            "analysis_summary": f"{len(analysis['organizational_issues'])} issues, {len(analysis['evolution_opportunities'])} opportunities"
+        }
+
+        return evolved_config
+
+    def _analyze_category_distribution(self, items: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Analyze how well items are distributed across categories."""
+        category_counts = {}
+        uncategorized = 0
+
+        for item in items:
+            category = item.get("category")
+            if category:
+                category_counts[category] = category_counts.get(category, 0) + 1
+            else:
+                uncategorized += 1
+
+        # Calculate balance metrics
+        if category_counts:
+            avg_per_category = sum(category_counts.values()) / len(category_counts)
+            max_category = max(category_counts.values())
+            min_category = min(category_counts.values())
+            balance_ratio = max_category / max(1, min_category)
+        else:
+            avg_per_category = 0
+            balance_ratio = 1
+
+        return {
+            "category_counts": category_counts,
+            "uncategorized_count": uncategorized,
+            "total_categories": len(category_counts),
+            "avg_items_per_category": avg_per_category,
+            "balance_ratio": balance_ratio,
+            "is_balanced": balance_ratio <= 3.0  # 3x difference is acceptable
+        }
+
+    def _analyze_category_effectiveness(self, items: List[Dict[str, Any]], categories: List[str]) -> Dict[str, Any]:
+        """Analyze if categories are accurate, redundant, or useful."""
+        effectiveness = {
+            "effective_categories": [],
+            "underutilized_categories": [],  # < 3 items
+            "potentially_redundant": [],
+            "missing_categories_needed": []
+        }
+
+        category_usage = {}
+        for item in items:
+            category = item.get("category")
+            if category:
+                category_usage[category] = category_usage.get(category, 0) + 1
+
+        # Check for underutilized categories
+        for category in categories:
+            count = category_usage.get(category, 0)
+            if count < 3:
+                effectiveness["underutilized_categories"].append({
+                    "category": category,
+                    "item_count": count
+                })
+
+        # Look for semantic redundancy (would need LLM analysis)
+        # This is a placeholder for more sophisticated analysis
+
+        return effectiveness
+
+    def _analyze_folder_structure(self, items: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Analyze if folder structure supports semantic organization."""
+        # Analyze path patterns
+        paths = [item.get("path", "") for item in items if item.get("path")]
+
+        # Check for semantic folder naming
+        semantic_folders = 0
+        total_folders = set()
+
+        for path in paths:
+            parts = path.split("/")
+            for part in parts:
+                if part and not part.startswith("."):
+                    total_folders.add(part)
+                    # Simple heuristic: folders with multiple words or descriptive names
+                    if len(part.split()) > 1 or len(part) > 15:
+                        semantic_folders += 1
+
+        return {
+            "total_unique_folders": len(total_folders),
+            "semantic_folders": semantic_folders,
+            "semantic_ratio": semantic_folders / max(1, len(total_folders)),
+            "supports_semantic_substrate": semantic_folders > len(total_folders) * 0.3
+        }
+
+    def _detect_operator_changes(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Detect manual reorganization by operator."""
+        issues = []
+
+        # Check for items that might have been moved
+        # (This would need comparison with previous index to detect moves)
+
+        # Check for folders that don't match category expectations
+        category_folders = {}
+        for item in items:
+            path_parts = item.get("path", "").split("/")
+            category = item.get("category")
+
+            if len(path_parts) > 1 and category:
+                folder = path_parts[0]
+                if folder not in category_folders:
+                    category_folders[folder] = set()
+                category_folders[folder].add(category)
+
+        # Flag folders with mixed categories (potential reorganization)
+        for folder, categories in category_folders.items():
+            if len(categories) > 1:
+                issues.append({
+                    "type": "mixed_categories_in_folder",
+                    "folder": folder,
+                    "categories": list(categories),
+                    "description": f"Folder '{folder}' contains items from {len(categories)} different categories"
+                })
+
+        return issues
+
+    def _identify_evolution_opportunities(self, analysis: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Identify concrete opportunities for schema evolution."""
+        opportunities = []
+
+        # Category consolidation opportunities
+        underutilized = analysis["effectiveness_metrics"]["category_effectiveness"]["underutilized_categories"]
+        if len(underutilized) > 1:
+            opportunities.append({
+                "type": "category_consolidation",
+                "redundant_categories": [cat["category"] for cat in underutilized],
+                "rationale": f"Consolidate {len(underutilized)} underutilized categories"
+            })
+
+        # Balance improvement opportunities
+        balance = analysis["effectiveness_metrics"]["category_balance"]
+        if not balance["is_balanced"]:
+            opportunities.append({
+                "type": "category_rebalancing",
+                "imbalanced_categories": balance["category_counts"],
+                "rationale": f"Balance categories (current ratio: {balance['balance_ratio']:.1f})"
+            })
+
+        return opportunities
+
+    def _generate_proposals_script(self, analysis: Dict[str, Any], evolved_config: Dict[str, Any]) -> None:
+        """Generate proposals.nu script for user review and schema application."""
         script_path = self.collection_path / "proposals.nu"
 
         script_lines = [
-            "# Collectivist Curation Proposals",
-            "# Review these suggestions and uncomment/run what you approve",
+            "# Collectivist Schema Evolution Proposals",
+            "# Review these suggestions and run to apply schema evolution",
             "# Generated on: " + datetime.now().isoformat(),
             "",
-            "# Collection Analysis:",
+            "# Current Schema Analysis:",
             f"# - Total items: {analysis['total_items']}",
-            f"# - Categories: {', '.join(analysis['category_sizes'].keys())}",
+            f"# - Current categories: {len(analysis.get('current_categories', []))}",
+            f"# - Organizational issues: {len(analysis.get('organizational_issues', []))}",
+            f"# - Evolution opportunities: {len(analysis.get('evolution_opportunities', []))}",
             "",
+            "# Proposed Schema Changes:",
         ]
 
-        for i, proposal in enumerate(analysis["proposals"], 1):
-            script_lines.extend([
-                f"# Proposal {i}: {proposal['description']}",
-                f"# Level: {proposal['level']} (conservative intervention)",
-                "",
-            ])
+        # Show what will change in the schema
+        current_cats = set(analysis.get("current_categories", []))
+        new_cats = set(evolved_config.get("categories", []))
 
-            if proposal["type"] == "metadata_enrichment":
-                script_lines.extend([
-                    "# This would run the describer on missing items only",
-                    "# collectivist describe --only-missing",
-                    "",
-                ])
-            elif proposal["type"] == "category_refinement":
-                category = proposal["category"]
-                script_lines.extend([
-                    f"# Propose splitting '{category}' category",
-                    f"# Would analyze items and suggest subcategories",
-                    f"# collectivist curate --split-category '{category}'",
-                    "",
-                ])
+        removed_cats = current_cats - new_cats
+        added_cats = new_cats - current_cats
+
+        if removed_cats:
+            script_lines.append(f"# Categories to remove: {', '.join(removed_cats)}")
+        if added_cats:
+            script_lines.append(f"# Categories to add: {', '.join(added_cats)}")
 
         script_lines.extend([
-            "# To apply all approved proposals:",
-            "# nu proposals.nu",
             "",
-            "# To reject all proposals:",
-            "# rm proposals.nu",
+            "# Apply schema evolution:",
+            f"cp '{self.collection_dir}/collection.yaml' '{self.collection_dir}/collection.yaml.backup'",
+            f"cat > '{self.collection_dir}/collection.yaml' << 'EOF'",
+        ])
+
+        # Include the evolved config in the script
+        script_lines.append(yaml.dump(evolved_config, default_flow_style=False))
+
+        script_lines.extend([
+            "EOF",
+            "",
+            "# Verify the changes:",
+            f"echo 'Schema updated. Run pipeline to see effects.'",
+            "",
+            "# To revert changes:",
+            "# cp collection.yaml.backup collection.yaml",
+            "",
+            "# After applying, run the full pipeline:",
+            "# collectivist update",
         ])
 
         with open(script_path, 'w', encoding='utf-8') as f:
