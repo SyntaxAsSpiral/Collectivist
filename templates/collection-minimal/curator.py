@@ -2,13 +2,17 @@
 Collection Curator - Schema Evolution Engine
 
 The "Advanced Analyzer" that evolves collection schema over time.
-Takes current schema + collection state → analyzes organization effectiveness → proposes schema improvements.
+Takes current schema + collection state → analyzes organization effectiveness → evolves schema for next run.
 
 CORE QUESTIONS:
 - Are files organized effectively under current schema?
 - Are categories accurate, redundant, or optimally useful?
 - Is folder structure conducive to semantic substrate?
 - Should schema evolve for better efficacy while maintaining stability?
+
+CURATION LOOP:
+First Run:  Analyzer creates initial schema → Curator analyzes initial organization
+Next Runs:  Curator evolves schema → Indexer/Describer/Renderer use evolved schema → repeat
 
 BALANCE: Keep schema stable as long as possible while ensuring maximum effectiveness.
 Can't be afraid of mutation, can't be stagnant without efficacy.

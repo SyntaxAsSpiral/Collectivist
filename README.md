@@ -25,11 +25,19 @@ General file organizers chase "never think about files again" but usually end up
 
 ## 🧬 Pipeline
 
-1. **Analyzer**: LLM inspects structure, determines collection type, generates config
-2. **Indexer**: Deterministic domain plugins discover items and extract factual metadata
-3. **Describer**: LLM reviews indexed data + content (READMEs, docs) for descriptions and category assignments
-4. **Curator**: Schema evolution engine analyzes organization effectiveness and evolves collection.yaml for optimal efficacy
-5. **Renderer**: Generates README.md, dashboard, and export formats from curated index 
+### First Run (Entry Point):
+    Analyzer → Creates initial collection.yaml schema
+    Indexer → Gathers data
+    Describer → Adds descriptions
+    Renderer → Generates outputs
+    Curator → Analyzes initial organization
+
+### Subsequent Runs (Evolution Loop):
+    Curator → Analyzes current organization effectiveness → Evolves schema for next run
+    Indexer → Uses evolved schema
+    Describer → Uses evolved categories
+    Renderer → Uses evolved schema
+    Curator → Analyzes again → Evolves further 
 
 ## 🌐 Installation
 
