@@ -156,6 +156,27 @@ COLLECTION_SCHEMAS = {
             ]
         },
         description="Schema inference, sample previews, provenance notes"
+    ),
+    
+    "obsidian": CollectionTypeSchema(
+        collection_type="obsidian",
+        status_glyph="🧠",
+        default_categories=[
+            "knowledge_base",            # Core knowledge, concepts, and foundational information
+            "personal_notes",            # Personal thoughts, reflections, and journaling
+            "research_notes",            # Research findings, studies, and academic content
+            "project_docs",              # Project documentation, plans, and specifications
+            "creative_writing",          # Stories, poems, creative writing, and fiction
+            "learning_notes",            # Study notes, tutorials, and learning materials
+            "utilities_misc"             # Templates, utilities, and miscellaneous notes
+        ],
+        scanner_config_defaults={
+            "extract_frontmatter": True, # Extract YAML frontmatter
+            "extract_tags": True,        # Extract #tags from content
+            "extract_links": True,       # Extract [[wiki links]]
+            "supported_formats": [".md"] # Only markdown files
+        },
+        description="Knowledge management with frontmatter, tags, and wiki links"
     )
 }
 

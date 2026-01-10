@@ -36,7 +36,7 @@ DEFAULT_BASE_URLS = {
 
 # Smart defaults for models when not specified
 DEFAULT_MODELS = {
-    ProviderType.LMSTUDIO: "local-model",
+    ProviderType.LMSTUDIO: "openai/gpt-oss-20b",
     ProviderType.OPENROUTER: "openai/gpt-oss-120b:free",
     ProviderType.POLLINATIONS: "openai",
     ProviderType.OLLAMA: "llama3.1",
@@ -181,7 +181,10 @@ class LLMClient:
         if not model:
             model = DEFAULT_MODELS.get(provider, "gpt-4o-mini")
         
-        return cls(provider=provider, api_key=api_key, base_url=base_url, model=model)
+        # Set longer timeout for LMStudio to handle JIT model loading
+        timeout = 120 if provider == ProviderType.LMSTUDIO else 30
+        
+        return cls(provider=provider, api_key=api_key, base_url=base_url, model=model, timeout=timeout)
     
     @classmethod
     def _discover_config(cls, custom_path: Optional[str] = None) -> Dict[str, str]:

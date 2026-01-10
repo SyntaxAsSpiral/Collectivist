@@ -11,7 +11,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 import yaml
 
-from .plugin_interface import CollectionScanner, CollectionItem, PluginRegistry
+from plugin_interface import CollectionScanner, CollectionItem, PluginRegistry
 
 
 class ObsidianScanner(CollectionScanner):
@@ -242,7 +242,7 @@ Generate a JSON response with:
 2. "category": ONE category from the list above that best matches this note.
 
 Example format:
-{"description": "Comprehensive guide to knowledge management systems and note-taking methodologies", "category": "knowledge_base"}
+{{"description": "Comprehensive guide to knowledge management systems and note-taking methodologies", "category": "knowledge_base"}}
 
 JSON Response:"""
 
