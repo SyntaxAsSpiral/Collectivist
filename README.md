@@ -1,34 +1,32 @@
-# Collectivist
+# ◈ Collectivist
 
-**AI-powered collection curator** for intentional collections. Transforms semantically coherent hoards (repositories, research papers, music libraries, photo archives, creative projects) into living documentation substrates with LLM-powered organization and curation.
+**AI-powered collection curator** for intentional collections. Transforms semantically coherent hoards into living documentation substrates with LLM-powered organization and curation.
 
-**Not a general file organizer.** Collectivist shines on collections you care about enough to give them structure and meaning. For Downloads auto-sorting, check out llama-fs or Local-File-Organizer.
+**Not a general file organizer.** Collectivist shines on collections you care about enough to give them structure and meaning.
 
-## Overview
+## ⚡ Features
 
-Collectivist is a three-stage pipeline for **intentional collections** - semantically coherent hoards where each item matters. Whether it's your repository archive, research paper collection, music library, or creative project hoard, Collectivist uses AI to understand your collection's domain and generate beautiful, searchable documentation that evolves with your curation.
+- **Domain-specific intelligence**: Git metadata, ID3 tags, EXIF data, citations, and semantic understanding
+- **LLM-powered curation**: Automatic categorization, description generation, and pattern learning
+- **Living documentation**: Auto-generated READMEs that become real knowledge artifacts
+- **Zero-install minimal mode**: Drop `.collection/` folder anywhere, works immediately
+- **Multi-format outputs**: Markdown, HTML, JSON, interactive Nushell scripts
+- **Collection types**: Repositories, research papers, media libraries, creative projects, datasets
 
-**Collection Types Supported:**
-- **Repository Collections** - Git-aware metadata, commit summaries, category taxonomy
-- **Research Paper Hoards** - Citation extraction, topic clustering, reading status
-- **Media Libraries** - Timeline-aware organization, mood/genre inference
-- **Creative Project Folders** - Version tracking, mood boards, linked assets
-- **Dataset Collections** - Schema inference, sample previews, provenance notes
+## 🎯 Why This Approach?
 
-## What Makes Collectivist Different
+General file organizers chase "never think about files again" but usually end up with mediocre generic sorting. Collectivist focuses on **intentional collections** where each item matters, enabling:
 
-**Collection-First Philosophy:** Unlike general file organizers that chase the dream of "never think about files again," Collectivist focuses on **intentional collections** - semantically coherent groups where each item carries meaning.
+- **Depth over breadth**: Domain-specific intelligence instead of one-size-fits-all rules
+- **Pattern learning that works**: Structure carries semantic meaning for smart suggestions
+- **Documentation as artifact**: READMEs become real knowledge repositories
+- **Curation that feels magical**: Context-aware organization based on actual intent
 
-**Why This Matters:**
-- **Depth over breadth** - Domain-specific intelligence (git metadata, ID3 tags, EXIF data) instead of generic rules
-- **Pattern learning that works** - Structure carries strong semantic signal for meaningful suggestions
-- **Documentation as artifact** - READMEs become real knowledge repositories, not directory listings
-- **Curation feels magical** - Suggestions based on actual organizational intent
+## 🔄 Three-Stage Pipeline
 
-**Three-Stage Pipeline:**
-1. **Analyzer** - LLM inspects directory structure, determines collection type, generates config
-2. **Scanner** - Domain-specific plugins discover items and extract rich metadata
-3. **Describer** - LLM generates descriptions and assigns categories using concurrent workers
+1. **Analyzer**: LLM inspects structure, determines collection type, generates config
+2. **Scanner**: Domain plugins discover items with rich metadata extraction
+3. **Describer**: LLM generates descriptions and assigns semantic categories
 
 ## Features
 
@@ -42,43 +40,52 @@ Collectivist is a three-stage pipeline for **intentional collections** - semanti
 - **Plugin Architecture** - Extensible scanner system for new collection types
 - **Deterministic** - Same filesystem + config = same output
 
-## Installation
+## 🌐 Installation
 
+### Minimal Level (Zero-Install)
 ```bash
-cd C:\Users\synta.ZK-ZRRH\.dev\collectivist
-pip install -r requirements.txt
+# Download .collection/ template
+wget https://github.com/SyntaxAsSpiral/collectivist/raw/main/templates/collection-minimal.zip
+unzip collection-minimal.zip
 
-# Configure LLM provider
-cp .env.example .env
-# Edit .env with your provider settings
-```
-
-## Quick Start
-
-**First Question: What kind of collection is this?**
-Collectivist asks this upfront to select the right domain-specific scanner and category taxonomy.
-
-```bash
-# Drop .collection/ folder into your collection directory
-# For a repository collection:
+# Drop into any collection directory
+cp -r .collection ~/my-repos/
 cd ~/my-repos
-python -m .collection analyze  # LLM detects "repositories" type
-python -m .collection update   # Full pipeline with git-aware scanning
 
-# For research papers:
-cd ~/research-papers
-python -m .collection analyze  # Detects document collection
-python -m .collection update   # Citation extraction, topic clustering
-
-# Force collection type if detection is off
-python -m .collection update --force-type repositories
-
-# View beautiful CLI dashboard
-nu .collection/view.nu
-
-# Open static HTML dashboard
-open .collection/dashboard.html
+# Start using immediately
+python -m .collection analyze
 ```
+
+### Standard Level (Interactive UI)
+```bash
+# Coming soon: pip install collectivist
+# collectivist init ~/my-collection --standard
+```
+
+## 🎮 Usage
+
+### Drop-in Workflow
+```bash
+# 1. Get .collection/ template (download from GitHub)
+# 2. Drop into any directory with content
+cp -r .collection ~/my-collection/
+cd ~/my-collection
+
+# 3. Analyze and organize
+python -m .collection analyze   # LLM detects collection type
+python -m .collection update    # Full pipeline: scan → describe → render
+
+# 4. View results
+nu .collection/view.nu          # Interactive CLI dashboard
+open .collection/dashboard.html # Static HTML viewer
+```
+
+### Collection Types Auto-Detected
+- **Repositories**: Git-aware scanning, commit summaries, category taxonomy
+- **Research**: Citation extraction, topic clustering, reading status
+- **Media**: Timeline organization, mood/genre inference, EXIF metadata
+- **Creative**: Version tracking, asset linking, format intelligence
+- **Datasets**: Schema inference, sample previews, data provenance
 
 ## Architecture
 
@@ -272,54 +279,44 @@ python -m .collection update C:\Users\synta.ZK-ZRRH\.dev\.repos --force-type rep
 diff C:\Users\synta.ZK-ZRRH\.dev\.repos\README.md <expected>
 ```
 
-## What Collectivist Is Not
+## 🚫 What Collectivist Is Not
 
-**Not a general file organizer.** Collectivist is not designed for:
-- Downloads folders with random files
-- Desktop cleanup of miscellaneous documents
-- Automatic organization of entire filesystems
-- Handling infinite edge cases (temp files, caches, logs)
+**Not a general file organizer.** For Downloads auto-sorting, check out llama-fs or Local-File-Organizer.
 
-**For general file organization:** Check out llama-fs, Local-File-Organizer, or Sparkle.
+Collectivist excels at **intentional collections** you care about enough to give structure and meaning.
 
-**What Collectivist excels at:** Collections you care about enough to give them structure and meaning.
+## 🏗️ Architecture
 
-## Technical Doctrine
+- **Collection-first design**: Intentional collections enable domain depth
+- **Hybrid Python/Nushell**: Beautiful CLI experiences with data processing power
+- **Zero-install minimal mode**: Drop folder, works immediately
+- **LLM provider abstraction**: Local + cloud with unified interface
+- **Plugin architecture**: Extensible scanners for new collection types
+- **Deterministic outputs**: Same input → same beautiful results
 
-- **Collection-first constraint**: Focus enables depth over breadth
-- **Fast-fail methodology**: LLM unreachable → exit immediately
-- **No mock data**: Real metadata only, `null` for missing values
-- **Deterministic**: Same filesystem + config = same output
-- **Context compilation**: YAML → README transformation, not raw dumps
-- **Anagoglyph recursion**: `.collection\` hidden infrastructure layers
-- **Leave no trace**: Clean final-state, no legacy artifacts
-- **Incremental saves**: Resumable operation after each success
+## 📅 Roadmap
 
-## Roadmap
+### ✅ Complete: Minimal Level MVP
+- **Zero-install drop-in system** - `.collection/` folder works anywhere
+- **LLM-powered collection analysis** - Auto-detects repository, research, media, creative, dataset types
+- **Domain-specific intelligence** - Git metadata, EXIF, citations, schema inference
+- **Hybrid Python/Nushell outputs** - Beautiful CLI + multiple formats (MD, HTML, JSON)
+- **Self-contained architecture** - All code + deps in one folder
 
-### Phase 1: Core Pipeline (Complete)
-- ✓ LLM provider abstraction
-- ✓ Plugin architecture
-- ✓ Repository scanner
-- ✓ Three-stage pipeline
-- ✓ README generation
+### 🔄 Next: Standard Level (Interactive UI)
+- **Vite + Vue frontend** - Modern web interface for curation
+- **FastAPI backend** - REST API + WebSocket real-time updates
+- **Advanced curation features** - Visual organization suggestions
+- **LLM provider management** - Easy configuration of models/providers
 
-### Phase 2: Additional Plugins
-- Media scanner (video, audio, images)
-- Document scanner (PDF, Word, Markdown)
-- Music scanner (with metadata extraction)
-- Dataset scanner (CSV, JSON, Parquet)
+### 🚀 Future: Package Manager & Extensions
+- **Central distribution** - `pip install collectivist` convenience
+- **Additional scanners** - Media, documents, music, datasets
+- **Auto-scheduling** - Background updates and maintenance
 
-### Phase 3: Web Dashboard
-- React frontend
-- Live-updating README preview
-- WebSocket updates during scanning
-- Visual category browser
+## Contributing
 
-### Phase 4: Auto-scheduling
-- Task Scheduler integration (Windows)
-- Cron support (Linux/macOS)
-- Configurable update intervals
+Issues and PRs welcome! This is an exploration of collection-first AI curation.
 
 ## License
 
@@ -327,6 +324,4 @@ Private research tool - not for distribution.
 
 ---
 
-**Last updated:** 2026-01-09
-
-Infrastructure as palimpsest, data as compiled breath 🜍
+*Infrastructure as palimpsest, data as compiled breath 🜍*
