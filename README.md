@@ -32,7 +32,7 @@ General file organizers chase "never think about files again" but usually end up
 
 ## 🌐 Installation
 
-### 🧺 Minimal Level - Zero-Install (Analyze + Index + Describe)
+### 🧺 Minimal Zero-Install (Analyze + Index + Describe)
 ```bash
 # Download .collection/ template
 wget https://github.com/SyntaxAsSpiral/collectivist/raw/main/templates/collection-minimal.zip
@@ -46,7 +46,7 @@ cd ~/my-repos
 python -m .collection analyze
 ```
 
-### 🎮 Standard Level (Interactive UI + Curation + Scheduling + Automation)
+### 🎮 Standard Installation (Interactive UI + Curation + Scheduling + Automation)
 ```bash
 # Coming soon: pip install collectivist
 # collectivist init ~/my-collection --standard
