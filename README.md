@@ -52,51 +52,7 @@ python -m .collection analyze
 
 ## ⚙️ Configuration
 
-### LLM Provider Setup
-
-Collectivist works with any LLM provider. Configure via environment variables or `.env` file:
-
-```bash
-# Choose provider: lmstudio, ollama, openrouter, openai, anthropic, pollinations
-export COLLECTIVIST_LLM_PROVIDER=lmstudio
-
-# Optional: Specify exact model (uses smart defaults if not set)
-export COLLECTIVIST_LLM_MODEL=llama3.1-8b-instruct
-
-# Required for cloud providers: openrouter, openai, anthropic
-export COLLECTIVIST_LLM_API_KEY=your_api_key_here
-
-# Optional: Custom API endpoint
-export COLLECTIVIST_LLM_BASE_URL=https://custom-endpoint.com/v1
-```
-
-### Provider Examples
-
-**LMStudio (Local, Recommended)**
-```bash
-export COLLECTIVIST_LLM_PROVIDER=lmstudio
-# No API key needed - uses your local LMStudio server
-```
-
-**Ollama (Local)**
-```bash
-export COLLECTIVIST_LLM_PROVIDER=ollama
-export COLLECTIVIST_LLM_MODEL=llama3.1  # or any model you have pulled
-```
-
-**OpenRouter (Cloud)**
-```bash
-export COLLECTIVIST_LLM_PROVIDER=openrouter
-export COLLECTIVIST_LLM_API_KEY=sk-or-v1-...
-export COLLECTIVIST_LLM_MODEL=meta-llama/llama-3.1-8b-instruct
-```
-
-**OpenAI**
-```bash
-export COLLECTIVIST_LLM_PROVIDER=openai
-export COLLECTIVIST_LLM_API_KEY=sk-...
-export COLLECTIVIST_LLM_MODEL=gpt-4o-mini  # Cost-effective default
-```
+Configure LLM providers via environment variables or copy `.env.example` to `.env` and edit. See `.env.example` for detailed examples.
 
 ## 🎮 Usage
 
