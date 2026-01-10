@@ -18,8 +18,8 @@
 
 ### 🧺 Minimal Zero-Install (Analyze + Index + Describe)
 1) Clone repo
-2) Copy .collection/ folder to your collection you want curated.
-or
+2) Copy .collection/ to your collection folder you want curated.<br>
+**OR**:<br>
 ```bash
 # Download .collection/ template from releases
 # TODO: Update with actual release URL when first release is created
