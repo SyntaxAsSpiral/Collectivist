@@ -44,7 +44,7 @@ cd ~/my-repos
 python -m .collection analyze
 ```
 
-### Standard Level (Interactive UI)
+### Standard Level (Interactive UI + Curation + Scheduling + Automation)
 ```bash
 # Coming soon: pip install collectivist
 # collectivist init ~/my-collection --standard
