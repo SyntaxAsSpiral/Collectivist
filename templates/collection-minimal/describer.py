@@ -60,6 +60,7 @@ class CollectionDescriber:
 
         # Find items needing descriptions (optimization: preserve existing ones)
         # This prevents re-describing entire collection on every run
+        # NOTE: In Standard Level, this will expand to include curation proposals
         items_to_describe = []
         for item in items:
             if not item.get("description") or not item.get("category"):
