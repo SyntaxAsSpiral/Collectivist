@@ -19,7 +19,7 @@ General file organizers chase "never think about files again" but usually end up
 
 - **Depth over breadth**: Domain-specific intelligence instead of one-size-fits-all rules
 - **Curation system**: Ongoing pattern learning and intelligent reorganization (standard level)
-- **Deterministic outputs**: Pattern learning is persisted explicitly in configuration and index files, preserving deterministic outputs given the same learned state
+- **Deterministic outputs**: Pattern learning is persisted explicitly in schema and index files, preserving deterministic outputs given the same learned state
 - **Documentation as artifact**: READMEs become real knowledge repositories
 - **Curation that feels magical**: Context-aware organization based on actual intent
 
