@@ -28,18 +28,6 @@ General file organizers chase "never think about files again" but usually end up
 2. **Scanner**: Domain plugins discover items with rich metadata extraction
 3. **Describer**: LLM generates descriptions and assigns semantic categories
 
-## Features
-
-- **Collection-First Design** - Optimized for intentional, semantically coherent collections
-- **Domain-Specific Intelligence** - Rich metadata extraction (git status, ID3 tags, EXIF, citations, etc.)
-- **LLM Provider Abstraction** - Supports local (LMStudio, Ollama) and cloud (OpenRouter, Anthropic, OpenAI, Pollinations) providers
-- **Concurrent Processing** - ThreadPoolExecutor with configurable workers for fast description generation
-- **Pattern Learning** - Learns your organizational preferences from structure and evolves suggestions
-- **Living Documentation** - Auto-generated READMEs that become real knowledge artifacts
-- **Self-Healing Curation** - Detects moves, additions, deletions and adapts gracefully
-- **Plugin Architecture** - Extensible scanner system for new collection types
-- **Deterministic** - Same filesystem + config = same output
-
 ## 🌐 Installation
 
 ### Minimal Level (Zero-Install)
