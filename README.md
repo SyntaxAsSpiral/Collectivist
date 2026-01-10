@@ -277,7 +277,7 @@ diff ~/repos/README.md <expected>
 
 Collectivist excels at **intentional collections** you care about enough to give structure and meaning.
 
-## 🏗️ Architecture
+## 🏛️ Architecture
 
 - **Collection-first design**: Intentional collections enable domain depth
 - **Two-tier system**: Minimal (indexing + descriptions) + Standard (ongoing curation)
@@ -289,21 +289,21 @@ Collectivist excels at **intentional collections** you care about enough to give
 
 ## 📅 Roadmap
 
-### ✅ Complete: Minimal Level MVP
+### Complete: Minimal Level MVP
 - **Zero-install drop-in system** - `.collection/` folder works anywhere
 - **LLM-powered collection analysis** - Auto-detects repository, research, media, creative, dataset types
 - **Domain-specific intelligence** - Git metadata, EXIF, citations, schema inference
 - **Hybrid Python/Nushell outputs** - Beautiful CLI + multiple formats (MD, HTML, JSON)
 - **Self-contained architecture** - All code + deps in one folder
 
-### 🔄 Next: Standard Level (Interactive Curation)
+### Next: Standard Level (Interactive Curation)
 - **Vite + Vue frontend** - Modern web interface for ongoing curation
 - **FastAPI backend** - REST API + WebSocket real-time updates
 - **Curation scheduler** - Ongoing pattern learning and reorganization
 - **Intelligent suggestions** - Context-aware organization recommendations
 - **LLM provider management** - Easy configuration of models/providers
 
-### 🚀 Future: Package Manager & Extensions
+### Future: Package Manager & Extensions
 - **Central distribution** - `pip install collectivist` convenience
 - **Additional scanners** - Media, documents, music, datasets
 - **Auto-scheduling** - Background updates and maintenance
