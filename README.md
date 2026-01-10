@@ -7,37 +7,12 @@
 ## 🌱 Features
 
 - **Domain-specific intelligence**: Git metadata, ID3 tags, EXIF data, citations, and semantic understanding
+- **Curation that feels magical**: Context-aware organization based on actual intent
 - **LLM-powered analysis**: Automatic categorization and rich description generation
 - **Living documentation**: Auto-generated READMEs that become real knowledge artifacts
 - **Zero-install minimal mode**: Drop `.collection/` folder anywhere, works immediately
 - **Multi-format outputs**: Markdown, HTML, JSON, interactive Nushell scripts
 - **Collection types**: Repositories, Obsidian vaults, documents, media files, research papers, creative projects, datasets
-
-## Why This Approach?
-
-General file organizers chase "never think about files again" but usually end up with mediocre generic sorting. Collectivist focuses on **intentional collections** where each item matters, enabling:
-
-- **Depth over breadth**: Domain-specific intelligence instead of one-size-fits-all rules
-- **Curation system**: Ongoing pattern learning and intelligent reorganization (standard level)
-- **Deterministic outputs**: Pattern learning is persisted explicitly in schema and index files, preserving deterministic outputs given the same learned state
-- **Documentation as artifact**: READMEs become real knowledge repositories
-- **Curation that feels magical**: Context-aware organization based on actual intent
-
-## 🧬 Pipeline
-
-### First Run (Entry Point):
-    Analyzer → Creates initial collection.yaml schema
-    Indexer → Gathers data
-    Describer → Adds descriptions
-    Renderer → Generates outputs
-    Curator → Analyzes initial organization
-
-### Subsequent Runs (Evolution Loop):
-    Curator → Analyzes organization effectiveness, evolves schema (only if necessary)
-    Indexer → Uses evolved schema
-    Describer → Uses evolved categories
-    Renderer → Uses evolved schema
-    Curator → Analyzes again → Evolves further 
 
 ## 🌐 Installation
 
@@ -145,7 +120,16 @@ scanner_config: {}
 
 **Custom Plugins:** Implement the `CollectionScanner` interface. Copy the template from `plugins/template/plugin_template.py` and modify existing plugins as references.
 
-## Pipeline Stages
+## Why This Approach?
+
+General file organizers chase "never think about files again" but usually end up with mediocre generic sorting. Collectivist focuses on **intentional collections** where each item matters, enabling:
+
+- **Depth over breadth**: Domain-specific intelligence instead of one-size-fits-all rules
+- **Curation system**: Ongoing pattern learning and intelligent reorganization (standard level)
+- **Deterministic outputs**: Pattern learning is persisted explicitly in schema and index files, preserving deterministic outputs given the same learned state
+- **Documentation as artifact**: READMEs become real knowledge repositories
+
+## 🔗 Workflow Stages
 
 ### Stage 1: Analyzer
 
@@ -159,7 +143,7 @@ python -m .collection analyze ~/repos
 python -m .collection analyze ~/repos repositories
 ```
 
-### Stage 2: Scanner
+### Stage 2: Indexer
 
 Discovers items and extracts metadata using domain-specific plugin.
 
