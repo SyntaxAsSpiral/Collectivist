@@ -765,7 +765,7 @@ Return JSON:
                 {"role": "user", "content": prompt}
             ]
 
-            response = self.llm_client.chat("llama3.1-8b-instant", messages, temperature=0.1)
+            response = self.llm_client.chat(messages, temperature=0.1)
             result = self._parse_llm_response(response)
 
             return result
@@ -817,7 +817,7 @@ Return JSON:
                 {"role": "user", "content": prompt}
             ]
 
-            response = self.llm_client.chat("llama3.1-8b-instant", messages, temperature=0.1)
+            response = self.llm_client.chat(messages, temperature=0.1)
 
             # Parse and return schema result
             try:
@@ -879,7 +879,7 @@ Return JSON:
                 {"role": "user", "content": prompt}
             ]
 
-            response = self.llm_client.chat("llama3.1-8b-instant", messages, temperature=0.1)
+            response = self.llm_client.chat(messages, temperature=0.1)
 
             # Parse and return categorization result
             try:

@@ -120,7 +120,7 @@ class CollectionDescriber:
                 {"role": "user", "content": prompt}
             ]
 
-            response = self.llm_client.chat("llama3.1-8b-instant", messages, temperature=0.2)
+            response = self.llm_client.chat(messages, temperature=0.2)
             result = self._parse_description_response(response)
 
             # Update item with results
