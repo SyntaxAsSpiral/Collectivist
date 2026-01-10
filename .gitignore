@@ -161,6 +161,9 @@ web/backend/__pycache__/
 web/backend/config.yaml
 ~/.collectivist/config.yaml
 
+# Node.js dependencies (should not be committed)
+node_modules/
+
 # ESLint cache
 .eslintcache
 
