@@ -75,6 +75,7 @@ open .collection/dashboard.html # Static HTML viewer
 - **Media**: Timeline organization, mood/genre inference, EXIF metadata
 - **Creative**: Version tracking, asset linking, format intelligence
 - **Datasets**: Schema inference, sample previews, data provenance
+- **Obsidian**: Knowledge graph analysis, tag networks, link mapping, frontmatter extraction
 
 ### ⚙️ Configuration
 

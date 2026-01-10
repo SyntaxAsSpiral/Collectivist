@@ -59,6 +59,14 @@ class CollectionAnalyzer:
             "categories": [
                 "ai_llm_agents", "dev_tools", "utilities_misc"
             ]
+        },
+        "obsidian": {
+            "name": "Obsidian Vault Collection",
+            "description": "Knowledge base with interconnected notes, tags, and metadata",
+            "indicators": [".obsidian", "frontmatter", ".md", "[[links]]"],
+            "categories": [
+                "creative_aesthetic", "dev_tools", "utilities_misc"
+            ]
         }
     }
 
@@ -232,6 +240,7 @@ Available collection types:
 - media: Photos, videos, audio files, and media assets
 - creative: Design projects, artwork, and creative assets
 - datasets: Data files, CSVs, and structured datasets
+- obsidian: Knowledge base with interconnected notes, tags, and metadata
 
 If this doesn't match any known types, specify "custom" and generate a custom schema. For ALL collections (known types or custom), analyze the content and generate 4-8 appropriate categories that would help organize this specific collection.
 
@@ -288,6 +297,10 @@ Return JSON:
         """Fallback analysis based on file types and structure."""
         # Simple heuristic-based analysis
         file_types = dir_info["file_types"]
+
+        # Check for Obsidian vault indicators
+        if ".obsidian" in dir_info["directory_structure"]:
+            return "obsidian", 0.9, "Detected .obsidian directory (Obsidian vault)"
 
         # Check for repository indicators
         if any(ext in [".git", ".gitignore", "readme.md", "license"] for ext in [f.lower() for f in dir_info["special_files"]]):
@@ -432,7 +445,8 @@ Return JSON:
             "research": ["author", "year", "journal", "citations"],
             "media": ["duration", "resolution", "codec", "artist", "album"],
             "creative": ["format", "dimensions", "color_space", "layers"],
-            "datasets": ["format", "rows", "columns", "schema", "source"]
+            "datasets": ["format", "rows", "columns", "schema", "source"],
+            "obsidian": ["tags", "aliases", "wiki_links", "frontmatter", "word_count", "internal_links", "external_links"]
         }
 
         return base_fields + type_fields.get(collection_type, [])
@@ -444,7 +458,8 @@ Return JSON:
             "research": ["file_readable", "metadata_complete"],
             "media": ["file_integrity", "metadata_present"],
             "creative": ["file_readable", "format_supported"],
-            "datasets": ["file_readable", "schema_valid"]
+            "datasets": ["file_readable", "schema_valid"],
+            "obsidian": ["file_readable", "frontmatter_valid"]
         }
 
         return checks.get(collection_type, ["file_readable"])
