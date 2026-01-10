@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-README Generator - Universal markdown documentation from collection index
+Collection Generator - Universal markdown documentation from collection index
 """
 
 from pathlib import Path
@@ -44,28 +44,30 @@ def get_status_emoji(item: CollectionItem) -> str:
     return status_map.get(git_status, '')
 
 
-def generate_readme(
+def generate_collection(
     items: List[CollectionItem],
     collection_name: str,
     collection_type: str,
     output_path: Path,
+    collection_overview: Optional[str] = None,
     event_emitter: Optional[EventEmitter] = None
 ):
     """
-    Generate README.md from collection items.
+    Generate Collection.md from collection items.
 
     Args:
         items: List of collection items
         collection_name: Name of the collection
         collection_type: Type of collection (repositories, media, etc.)
-        output_path: Path to save README.md
+        output_path: Path to save Collection.md
+        collection_overview: Optional LLM-generated collection overview
         event_emitter: Optional event emitter for progress updates
     """
     emitter = event_emitter
     
     if emitter:
         emitter.set_stage(EventStage.RENDER)
-        emitter.info("Starting README generation")
+        emitter.info("Starting Collection.md generation")
 
     # Calculate stats
     if emitter:
@@ -92,16 +94,26 @@ def generate_readme(
 
     # Build header
     if emitter:
-        emitter.info("Building README header and overview")
+        emitter.info("Building Collection.md header and overview")
     header_parts = [
         f"# {collection_name}\n",
         f"> Indexed {collection_type} collection\n",
         "## Overview\n",
+    ]
+    
+    # Add collection overview if available
+    if collection_overview:
+        header_parts.extend([
+            f"{collection_overview}\n\n",
+            "### Statistics\n\n",
+        ])
+    
+    header_parts.extend([
         f"**Total Items:** {total_items}  ",
         f"**Total Size:** {format_size(total_size)}  ",
         f"**Described:** {described}  ",
         f"**Categorized:** {categorized}  \n",
-    ]
+    ])
 
     # Add git-specific stats if applicable
     if git_stats:
@@ -184,14 +196,14 @@ def generate_readme(
     today = datetime.now().strftime("%Y-%m-%d")
     footer = f"""## Index Maintenance
 
-This README is automatically generated from `.collection/index.yaml`.
+This Collection.md is automatically generated from `.collection/index.yaml`.
 
 **To update the index:**
 ```bash
 python -m .collection update
 ```
 
-**To regenerate this README only:**
+**To regenerate this Collection.md only:**
 ```bash
 python -m .collection render
 ```
@@ -200,22 +212,22 @@ python -m .collection render
 """
 
     # Combine all sections
-    readme_content = header + table + ''.join(category_sections) + footer
+    collection_content = header + table + ''.join(category_sections) + footer
 
     # Save
     if emitter:
-        emitter.info(f"Writing README to {output_path}")
+        emitter.info(f"Writing Collection.md to {output_path}")
     with open(output_path, 'w', encoding='utf-8') as f:
-        f.write(readme_content)
+        f.write(collection_content)
 
     if emitter:
-        emitter.complete_stage(f"README generated at {output_path}")
+        emitter.complete_stage(f"Collection.md generated at {output_path}")
     else:
-        print(f"[OK] README generated at {output_path}")
+        print(f"[OK] Collection.md generated at {output_path}")
 
 
 def main():
-    """CLI entry point for standalone README generation"""
+    """CLI entry point for standalone Collection.md generation"""
     import sys
     import yaml
     from pathlib import Path
@@ -241,39 +253,18 @@ def main():
         print(f"[X] No collection-index.yaml found at {index_path}")
         sys.exit(1)
 
-    with open(index_path, 'r', encoding='utf-8') as f:
-        data = yaml.safe_load(f) or []
+    # Load index using the pipeline function to handle collection overview
+    from pipeline import load_index
+    items, collection_overview = load_index(index_path)
 
-    # Convert to CollectionItem objects
-    items = []
-    for item_data in data:
-        standard_fields = {
-            'short_name', 'type', 'size', 'created', 'modified',
-            'accessed', 'path', 'description', 'category'
-        }
-        metadata = {k: v for k, v in item_data.items() if k not in standard_fields}
-
-        item = CollectionItem(
-            short_name=item_data['short_name'],
-            type=item_data['type'],
-            size=item_data['size'],
-            created=item_data['created'],
-            modified=item_data['modified'],
-            accessed=item_data['accessed'],
-            path=item_data['path'],
-            description=item_data.get('description'),
-            category=item_data.get('category'),
-            metadata=metadata
-        )
-        items.append(item)
-
-    # Generate README
-    readme_path = collection_path / 'README.md'
-    generate_readme(
+    # Generate Collection.md
+    readme_path = collection_path / 'Collection.md'
+    generate_collection(
         items=items,
         collection_name=config['name'],
         collection_type=config['collection_type'],
-        output_path=readme_path
+        output_path=readme_path,
+        collection_overview=collection_overview
     )
 
 

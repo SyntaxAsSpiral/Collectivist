@@ -68,7 +68,6 @@ class CollectionDescriber:
         # Query LLM
         try:
             response = self.llm.chat(
-                model="gpt-oss-20b",  # Use configured model
                 messages=[Message(role="user", content=prompt)],
                 temperature=0.1,
                 max_tokens=500
@@ -132,20 +131,98 @@ class CollectionDescriber:
             'total': total
         }
 
+    def generate_collection_overview(
+        self,
+        items: List[CollectionItem],
+        collection_type: str
+    ) -> Optional[str]:
+        """
+        Generate a contextual overview of the entire collection.
+
+        Args:
+            items: List of all collection items with descriptions
+            collection_type: Type of collection (repositories, media, etc.)
+
+        Returns:
+            Generated overview paragraph or None if failed
+        """
+        # Only generate overview if we have items with descriptions
+        described_items = [item for item in items if item.description]
+        if not described_items:
+            return None
+
+        # Gather collection statistics
+        total_items = len(items)
+        described_count = len(described_items)
+        categories = {}
+        
+        for item in described_items:
+            if item.category:
+                categories[item.category] = categories.get(item.category, 0) + 1
+
+        # Build context for LLM
+        category_summary = ", ".join([f"{count} {cat}" for cat, count in categories.items()])
+        
+        # Sample descriptions for context (up to 10 items)
+        sample_descriptions = []
+        for item in described_items[:10]:
+            sample_descriptions.append(f"- {item.short_name}: {item.description} [{item.category or 'uncategorized'}]")
+        
+        sample_text = "\n".join(sample_descriptions)
+
+        # Create prompt for collection overview
+        prompt = f"""Analyze this {collection_type} collection and generate a concise overview paragraph (2-3 sentences, max 200 words).
+
+COLLECTION STATISTICS:
+- Total items: {total_items}
+- Items with descriptions: {described_count}
+- Categories: {category_summary}
+
+SAMPLE ITEMS:
+{sample_text}
+
+Generate a contextual overview that captures:
+1. The main focus/theme of this collection
+2. Key categories or types of content
+3. Any notable patterns or characteristics
+
+Return only the overview paragraph, no additional formatting or explanation."""
+
+        try:
+            response = self.llm.chat(
+                messages=[Message(role="user", content=prompt)],
+                temperature=0.3,
+                max_tokens=300
+            )
+            
+            # Clean and truncate the response
+            overview = response.strip()
+            if len(overview) > 500:  # Safety limit
+                overview = overview[:497] + "..."
+                
+            return overview
+
+        except Exception as e:
+            if self.emitter:
+                self.emitter.warn(f"Failed to generate collection overview: {e}")
+            else:
+                print(f"  [!] Failed to generate collection overview: {e}")
+            return None
+
     def describe_collection(
         self,
         items: List[CollectionItem],
         save_callback: Optional[callable] = None
-    ) -> List[CollectionItem]:
+    ) -> tuple[List[CollectionItem], Optional[str]]:
         """
-        Generate descriptions for all items needing them.
+        Generate descriptions for all items needing them, then generate collection overview.
 
         Args:
             items: List of collection items
             save_callback: Optional callback to save after each success (for incremental saves)
 
         Returns:
-            Updated list of items with descriptions populated
+            Tuple of (updated items list, collection overview string)
         """
         # Filter items needing descriptions
         needs_description = [
@@ -233,7 +310,28 @@ class CollectionDescriber:
             if failed:
                 print(f"[!] Failed: {len(failed)} items")
 
-        return items
+        # Generate collection overview after all descriptions are complete
+        collection_overview = None
+        if successful > 0:  # Only generate if we have some descriptions
+            if self.emitter:
+                self.emitter.info("Generating collection overview...")
+            else:
+                print("\nGenerating collection overview...")
+            
+            # We need collection_type - try to infer from scanner or use generic
+            collection_type = getattr(self.scanner, 'collection_type', 'collection')
+            if hasattr(self.scanner, 'get_name'):
+                collection_type = self.scanner.get_name()
+            
+            collection_overview = self.generate_collection_overview(items, collection_type)
+            
+            if collection_overview:
+                if self.emitter:
+                    self.emitter.info(f"Collection overview: {collection_overview[:100]}...")
+                else:
+                    print(f"[OK] Collection overview generated: {collection_overview[:100]}...")
+
+        return items, collection_overview
 
 
 def describe_from_index(
@@ -241,9 +339,9 @@ def describe_from_index(
     llm_client: LLMClient,
     scanner: CollectionScanner,
     max_workers: int = 5
-) -> List[CollectionItem]:
+) -> tuple[List[CollectionItem], Optional[str]]:
     """
-    Load items from index YAML, generate descriptions, save back.
+    Load items from index YAML, generate descriptions, save back with collection overview.
 
     Args:
         index_path: Path to collection-index.yaml
@@ -252,15 +350,23 @@ def describe_from_index(
         max_workers: Number of concurrent workers
 
     Returns:
-        Updated list of items
+        Tuple of (updated items list, collection overview)
     """
     # Load index
     with open(index_path, 'r', encoding='utf-8') as f:
         data = yaml.safe_load(f)
 
+    # Handle both old format (list) and new format (dict with collection_overview)
+    if isinstance(data, list):
+        items_data = data
+        existing_overview = None
+    else:
+        items_data = data.get('items', data)  # Support both 'items' key or direct list
+        existing_overview = data.get('collection_overview')
+
     # Convert to CollectionItem objects
     items = []
-    for item_data in data:
+    for item_data in items_data:
         item = CollectionItem(
             short_name=item_data['short_name'],
             type=item_data['type'],
@@ -278,10 +384,10 @@ def describe_from_index(
     # Create describer
     describer = CollectionDescriber(llm_client, scanner, max_workers)
 
-    # Define save callback for incremental saves
-    def save_items(updated_items: List[CollectionItem]):
+    # Define save callback for incremental saves with overview
+    def save_items_with_overview(updated_items: List[CollectionItem], overview: Optional[str] = None):
         # Convert back to dicts
-        data = []
+        items_data = []
         for item in updated_items:
             item_dict = {
                 'short_name': item.short_name,
@@ -295,16 +401,41 @@ def describe_from_index(
                 'category': item.category,
                 'metadata': item.metadata
             }
-            data.append(item_dict)
+            items_data.append(item_dict)
 
-        # Save
+        # Create new format with collection_overview at top
+        output_data = {}
+        if overview or existing_overview:
+            output_data['collection_overview'] = overview or existing_overview
+        
+        # Add items as a direct list (not under 'items' key to match expected format)
+        # Based on requirements, the format should be:
+        # collection_overview: "..."
+        # - item1
+        # - item2
+        # So we need to save as a dict with collection_overview + direct list items
+        
+        # Actually, let's check the expected format again - it shows items as direct array
+        # So we'll save in the expected format: overview field + direct item array
         with open(index_path, 'w', encoding='utf-8') as f:
-            yaml.dump(data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+            if overview or existing_overview:
+                # Write overview first
+                f.write(f"collection_overview: {yaml.dump(overview or existing_overview).strip()}\n\n")
+            
+            # Write items as direct array
+            yaml.dump(items_data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
 
-    # Generate descriptions with incremental saves
-    updated_items = describer.describe_collection(items, save_callback=save_items)
+    # Generate descriptions with incremental saves (but don't save overview until the end)
+    def incremental_save(updated_items: List[CollectionItem]):
+        save_items_with_overview(updated_items, existing_overview)
 
-    return updated_items
+    # Generate descriptions and overview
+    updated_items, collection_overview = describer.describe_collection(items, save_callback=incremental_save)
+
+    # Final save with the new overview
+    save_items_with_overview(updated_items, collection_overview)
+
+    return updated_items, collection_overview
 
 
 def describe_collection_cli(index_path: str, max_workers: int = 5):
@@ -351,7 +482,10 @@ def describe_collection_cli(index_path: str, max_workers: int = 5):
     print("[OK] LLM connection OK\n")
 
     # Generate descriptions
-    describe_from_index(index_path, llm_client, scanner, max_workers)
+    updated_items, collection_overview = describe_from_index(index_path, llm_client, scanner, max_workers)
+
+    if collection_overview:
+        print(f"\n[OK] Collection overview: {collection_overview}")
 
     return True
 

@@ -6,7 +6,7 @@ Orchestrates: Analyzer → Scanner → Describer → README Generator
 
 import sys
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Dict, Any
 import yaml
 
 from llm import create_client_from_config, test_llm_connection
@@ -17,13 +17,19 @@ from events import EventEmitter, create_console_emitter
 from organic import ContentProcessor
 
 # Import plugins to trigger registration
-sys.path.insert(0, str(Path(__file__).parent.parent / 'plugins'))
 import repository_scanner  # noqa: F401
+import fallback_scanner  # noqa: F401
 
 
 def load_collection_config(collection_path: Path) -> Dict[str, Any]:
-    """Load collection.yaml config"""
-    config_path = collection_path / 'collection.yaml'
+    """Load collection.yaml schema configuration"""
+    config_path = collection_path / '.collection' / 'collection.yaml'
+    
+    # Also check for collection.yaml in root (legacy support)
+    if not config_path.exists():
+        legacy_config_path = collection_path / 'collection.yaml'
+        if legacy_config_path.exists():
+            config_path = legacy_config_path
 
     if not config_path.exists():
         raise FileNotFoundError(
@@ -77,8 +83,8 @@ def get_workflow_config_from_collection(collection_path: Path) -> Dict[str, Any]
     return workflow_config
 
 
-def save_index(items: list[CollectionItem], index_path: Path):
-    """Save items to collection-index.yaml"""
+def save_index(items: list[CollectionItem], index_path: Path, collection_overview: Optional[str] = None):
+    """Save items to collection-index.yaml with optional collection overview"""
     data = []
     for item in items:
         item_dict = {
@@ -99,19 +105,71 @@ def save_index(items: list[CollectionItem], index_path: Path):
         data.append(item_dict)
 
     with open(index_path, 'w', encoding='utf-8') as f:
+        if collection_overview:
+            # Write overview first
+            f.write(f"collection_overview: {yaml.dump(collection_overview).strip()}\n\n")
+        
+        # Write items as direct array
         yaml.dump(data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
 
 
-def load_index(index_path: Path) -> list[CollectionItem]:
-    """Load items from collection-index.yaml"""
+def load_index(index_path: Path) -> tuple[list[CollectionItem], Optional[str]]:
+    """Load items from collection-index.yaml, returning items and collection overview"""
     if not index_path.exists():
-        return []
+        return [], None
 
     with open(index_path, 'r', encoding='utf-8') as f:
         data = yaml.safe_load(f) or []
 
+    # Handle both old format (list) and new format (dict with collection_overview)
+    collection_overview = None
+    if isinstance(data, dict) and 'collection_overview' in data:
+        collection_overview = data['collection_overview']
+        # Items should be the rest of the data or under 'items' key
+        items_data = [v for k, v in data.items() if k != 'collection_overview' and isinstance(v, dict)]
+        if not items_data and 'items' in data:
+            items_data = data['items']
+    elif isinstance(data, list):
+        items_data = data
+    else:
+        # Handle the expected format where overview is at top level and items are direct array
+        # We need to parse this differently - let's read the file as text first
+        with open(index_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        if content.startswith('collection_overview:'):
+            # Split on the first occurrence of a YAML list item
+            lines = content.split('\n')
+            overview_lines = []
+            items_lines = []
+            in_items = False
+            
+            for line in lines:
+                if line.strip().startswith('- ') and not in_items:
+                    in_items = True
+                    items_lines.append(line)
+                elif in_items:
+                    items_lines.append(line)
+                else:
+                    overview_lines.append(line)
+            
+            # Parse overview
+            if overview_lines:
+                overview_yaml = '\n'.join(overview_lines)
+                overview_data = yaml.safe_load(overview_yaml)
+                collection_overview = overview_data.get('collection_overview') if isinstance(overview_data, dict) else None
+            
+            # Parse items
+            if items_lines:
+                items_yaml = '\n'.join(items_lines)
+                items_data = yaml.safe_load(items_yaml) or []
+            else:
+                items_data = []
+        else:
+            items_data = data if isinstance(data, list) else []
+
     items = []
-    for item_data in data:
+    for item_data in items_data:
         # Extract standard fields
         standard_fields = {
             'short_name', 'type', 'size', 'created', 'modified',
@@ -135,7 +193,7 @@ def load_index(index_path: Path) -> list[CollectionItem]:
         )
         items.append(item)
 
-    return items
+    return items, collection_overview
 
 
 def run_full_pipeline(
@@ -172,7 +230,7 @@ def run_full_pipeline(
     collection_path = collection_path.resolve()
     index_dir = collection_path / '.collection'
     index_path = index_dir / 'collection-index.yaml'
-    config_path = collection_path / 'collection.yaml'
+    config_path = index_dir / 'collection.yaml'
 
     # Use console emitter if none provided (backward compatibility)
     emitter = event_emitter or create_console_emitter()
@@ -265,7 +323,7 @@ def run_full_pipeline(
             print("Scanning collection...")
 
         # Load existing index to preserve descriptions/categories
-        existing_items = load_index(index_path)
+        existing_items, existing_overview = load_index(index_path)
         preserve_data = {
             item.path: {
                 'description': item.description,
@@ -282,8 +340,8 @@ def run_full_pipeline(
         # Scan collection
         items = scanner.scan(collection_path, scanner_config)
 
-        # Save index
-        save_index(items, index_path)
+        # Save index (preserve existing overview for now)
+        save_index(items, index_path, existing_overview)
 
         if not event_emitter:  # Console mode
             print(f"[OK] Scanned {len(items)} items")
@@ -291,7 +349,7 @@ def run_full_pipeline(
             print()
     else:
         # Load existing index
-        items = load_index(index_path)
+        items, collection_overview = load_index(index_path)
 
     # Stage 3: Describe (LLM description generation)
     if not skip_describe:
@@ -319,12 +377,18 @@ def run_full_pipeline(
         # Create describer
         describer = CollectionDescriber(llm_client, scanner, max_workers, emitter)
 
-        # Define save callback for incremental saves
+        # Define save callback for incremental saves (preserve existing overview during incremental saves)
         def save_callback(updated_items):
-            save_index(updated_items, index_path)
+            save_index(updated_items, index_path, collection_overview)
 
-        # Generate descriptions
-        items = describer.describe_collection(items, save_callback=save_callback)
+        # Generate descriptions and collection overview
+        items, new_overview = describer.describe_collection(items, save_callback=save_callback)
+        
+        # Update collection overview if we got a new one
+        if new_overview:
+            collection_overview = new_overview
+            # Final save with the new overview
+            save_index(items, index_path, collection_overview)
 
         if not event_emitter:  # Console mode
             print()
@@ -336,14 +400,15 @@ def run_full_pipeline(
             print("STAGE 4: README GENERATOR - Documentation Generation")
             print("=" * 60)
 
-        from readme_generator import generate_readme
+        from readme_generator import generate_collection
 
-        readme_path = collection_path / 'README.md'
-        generate_readme(
+        readme_path = collection_path / 'Collection.md'
+        generate_collection(
             items=items,
             collection_name=config['name'],
             collection_type=collection_type,
             output_path=readme_path,
+            collection_overview=collection_overview,
             event_emitter=emitter
         )
 

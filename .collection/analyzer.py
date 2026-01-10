@@ -11,6 +11,7 @@ import yaml
 
 from llm import LLMClient, Message
 from plugin_interface import PluginRegistry
+from schema_definitions import get_collection_schema, generate_collection_config, list_collection_types
 from events import EventEmitter, EventStage
 
 
@@ -91,7 +92,7 @@ class CollectionAnalyzer:
         force_type: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Generate collection.yaml configuration.
+        Generate collection.yaml schema configuration.
 
         If force_type is specified, skip LLM detection and use that type.
         Otherwise, use LLM to analyze directory and determine type.
@@ -120,33 +121,23 @@ class CollectionAnalyzer:
             if self.emitter:
                 self.emitter.success(f"Collection type detected: {collection_type}")
 
-        # Get appropriate scanner
-        scanner_class = PluginRegistry.get_plugin(collection_type)
-        if not scanner_class:
+        # Validate collection type has a schema definition
+        try:
+            schema = get_collection_schema(collection_type)
+        except ValueError as e:
             if self.emitter:
-                self.emitter.error(f"No scanner found for collection type: {collection_type}")
-            raise ValueError(f"No scanner found for collection type: {collection_type}")
+                self.emitter.error(f"Invalid collection type: {collection_type}")
+            raise e
 
-        scanner = scanner_class()
-
-        # Build config
+        # Generate configuration using schema definitions
         if self.emitter:
-            self.emitter.info("Generating collection configuration")
-        config = {
-            'collection_type': collection_type,
-            'name': path.name,
-            'path': str(path),
-            'categories': scanner.get_categories(),
-            'exclude_hidden': True,
-            'scanner_config': {},
-            'schedule': {
-                'enabled': False,
-                'interval_days': 7,
-                'operations': ['scan', 'describe', 'render'],
-                'auto_file': False,
-                'confidence_threshold': 0.8
-            }
-        }
+            self.emitter.info("Generating collection schema configuration")
+        
+        config = generate_collection_config(
+            collection_type=collection_type,
+            name=path.name,
+            path=str(path)
+        )
 
         if self.emitter:
             self.emitter.complete_stage("Collection analysis complete")
@@ -158,17 +149,21 @@ class CollectionAnalyzer:
         Use LLM to detect collection type from inspection data.
         Returns collection type name (e.g., 'repositories', 'media', 'documents')
         """
-        # Get available plugins
-        plugins = PluginRegistry.list_plugins()
-        plugin_info = '\n'.join([
-            f"- {p.name}: {p.description}" for p in plugins
-        ])
+        # Get available collection types from schema definitions
+        available_types = list_collection_types()
+        type_descriptions = []
+        
+        for collection_type in available_types:
+            schema = get_collection_schema(collection_type)
+            type_descriptions.append(f"- {collection_type}: {schema.description}")
+        
+        type_info = '\n'.join(type_descriptions)
 
         # Build prompt
         prompt = f"""You are analyzing a directory to determine what type of collection it contains.
 
 Available collection types:
-{plugin_info}
+{type_info}
 
 Directory inspection:
 - Total items: {inspection['total_items']}
@@ -189,7 +184,6 @@ Collection type:"""
         # Query LLM
         try:
             response = self.llm.chat(
-                model="gpt-oss-20b",  # Use configured model
                 messages=[Message(role="user", content=prompt)],
                 temperature=0.1,
                 max_tokens=50
@@ -197,8 +191,8 @@ Collection type:"""
 
             collection_type = response.strip().lower().replace('"', '')
 
-            # Validate against registered plugins
-            if PluginRegistry.get_plugin(collection_type):
+            # Validate against available types
+            if collection_type in available_types:
                 return collection_type
             else:
                 # Fallback: use heuristics
@@ -236,26 +230,29 @@ Collection type:"""
         output_path: Optional[Path] = None
     ) -> Path:
         """
-        Analyze directory and create collection.yaml config file.
+        Analyze directory and create collection.yaml schema file.
 
         Returns path to created collection.yaml
         """
         # Generate config
         config = self.generate_collection_config(path, force_type=force_type)
 
-        # Determine output path
+        # Determine output path - save in .collection directory
         if output_path is None:
-            output_path = path / 'collection.yaml'
+            collection_dir = path / '.collection'
+            collection_dir.mkdir(exist_ok=True)
+            output_path = collection_dir / 'collection.yaml'
 
         # Save config
         with open(output_path, 'w', encoding='utf-8') as f:
             yaml.dump(config, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
 
         if self.emitter:
-            self.emitter.success(f"Created collection config: {output_path}")
+            self.emitter.success(f"Created collection schema: {output_path}")
         else:
-            print(f"[OK] Created collection config: {output_path}")
+            print(f"[OK] Created collection schema: {output_path}")
             print(f"  Type: {config['collection_type']}")
+            print(f"  Status: {config['status']}")
             print(f"  Name: {config['name']}")
             print(f"  Categories: {len(config['categories'])}")
 
