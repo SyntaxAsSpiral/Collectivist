@@ -33,7 +33,7 @@ General file organizers chase "never think about files again" but usually end up
     Curator → Analyzes initial organization
 
 ### Subsequent Runs (Evolution Loop):
-    Curator → Phase 1: Analyzes organization effectiveness → Phase 2: Evolves schema (only if necessary)
+    Curator → Analyzes organization effectiveness, evolves schema (only if necessary)
     Indexer → Uses evolved schema
     Describer → Uses evolved categories
     Renderer → Uses evolved schema
@@ -43,8 +43,9 @@ General file organizers chase "never think about files again" but usually end up
 
 ### 🧺 Minimal Zero-Install (Analyze + Index + Describe)
 ```bash
-# Download .collection/ template
-wget https://github.com/SyntaxAsSpiral/collectivist/raw/main/templates/collection-minimal.zip
+# Download .collection/ template from releases
+# TODO: Update with actual release URL when first release is created
+wget https://github.com/SyntaxAsSpiral/collectivist/releases/download/v0.1.0/collection-minimal.zip
 unzip collection-minimal.zip
 
 # Drop into any collection directory
