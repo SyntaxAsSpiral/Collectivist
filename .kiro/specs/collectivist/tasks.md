@@ -13,12 +13,12 @@ This implementation focuses on verifying and generalizing the existing repo inde
   - Ensure scripts work without hardcoded paths
   - _Requirements: 2.1, 2.5_
 
-- [ ] 1.1 Test repo indexer in all collection seed locations
-  - Test in `Z:\Documents\.collectivist`
-  - Test in `C:\Users\synta.ZK-ZRRH\.dev\.drift\.collectivist`
-  - Test in `Z:\Images\.collectivist`
-  - Document any path-specific issues found
-  - _Requirements: 2.1_
+  - [ ] 1.1 Test repo indexer in all collection seed locations
+    - Test in `Z:\Documents\.collectivist`
+    - Test in `C:\Users\synta.ZK-ZRRH\.dev\.drift\.collectivist`
+    - Test in `Z:\Images\.collectivist`
+    - Document any path-specific issues found
+    - _Requirements: 2.1_
 
 - [ ] 2. Extract Generalization Patterns from Repo Indexer
   - Analyze existing repo indexer architecture

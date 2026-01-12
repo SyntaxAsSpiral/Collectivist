@@ -139,6 +139,8 @@ Collectivist is an AI-powered collection curator that transforms semantically co
 4. THE System SHALL provide detailed error logs with context for debugging failed operations
 5. WHEN critical errors occur, THE System SHALL save partial progress before terminating
 
+### Requirement 11: Trunk Data Management and Web Interface
+
 ### Requirement 12: Collection Discovery and Registration
 
 **User Story:** As a system administrator, I want the trunk to automatically discover and register distributed collection seeds, so that new collections are integrated without manual configuration.
@@ -150,15 +152,3 @@ Collectivist is an AI-powered collection curator that transforms semantically co
 3. THE Trunk SHALL coordinate processing across multiple collection seeds in parallel
 4. WHEN collection seeds are removed, THE Trunk SHALL mark them as inactive in the registry
 5. THE System SHALL maintain collection seed identity and provenance in all aggregated data
-
-### Requirement 11: Trunk Data Management and Web Interface
-
-**User Story:** As a system operator, I want a central trunk with SQLite storage and a simple web interface, so that I can manage and visualize all collection data from one place.
-
-#### Acceptance Criteria
-
-1. THE Trunk SHALL use SQLite database for storing aggregated collection data and metadata
-2. THE Trunk SHALL provide a simple web interface accessible via `collection.html`
-3. WHEN collections are processed, THE Trunk SHALL update the SQLite database with latest collection states
-4. THE Web_Interface SHALL display collection summaries, processing status, and unified statistics
-5. THE Trunk SHALL maintain collection registry with locations, types, and last-updated timestamps in SQLite

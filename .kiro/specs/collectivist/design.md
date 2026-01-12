@@ -48,7 +48,7 @@ graph TB
 
 ### Trunk
 - **Storage**: SQLite database for aggregated data
-- **Interface**: Web interface via `collection.html`
+- **Interface**: FastAPI backend with React frontend web interface
 - **Function**: Discovery, registration, and coordination
 
 ### Processing Pipeline
@@ -154,6 +154,14 @@ collection:
 ### Property 10: Collection Registry Maintenance
 *For any* discovered `.collectivist` folder, the trunk should register it in the SQLite database with correct metadata.
 **Validates: Requirements 12.1, 12.2**
+
+### Property 11: Web Interface Functionality
+*For any* valid collection data, the web interface should display collection summaries and allow configuration management.
+**Validates: Requirements 7.1, 7.2, 7.3**
+
+### Property 12: Trunk Data Persistence
+*For any* processed collection, the trunk should maintain persistent SQLite storage with collection registry and metadata.
+**Validates: Requirements 11.1, 11.3, 11.5**
 
 ## Error Handling
 
