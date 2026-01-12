@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>my-repos - Collection Browser</title>
+    <style>
+        /* Import Recursive Mono Casual font */
+        @import url('https://fonts.googleapis.com/css2?family=Recursive:slnt,wght,CASL,MONO@-15..0,300..1000,0..1,0..1&display=swap');
+
+        /* Catppuccin Frappé Color Variables */
+        .theme-frappe {
+            --ctp-rosewater: #f5e0dc;
+            --ctp-flamingo: #f2cdcd;
+            --ctp-pink: #f5c2e7;
+            --ctp-mauve: #cba6f7;
+            --ctp-red: #f38ba8;
+            --ctp-maroon: #eba0ac;
+            --ctp-peach: #fab387;
+            --ctp-yellow: #f9e2af;
+            --ctp-green: #a6e3a1;
+            --ctp-teal: #94e2d5;
+            --ctp-sky: #89dceb;
+            --ctp-sapphire: #74c7ec;
+            --ctp-blue: #89b4fa;
+            --ctp-lavender: #b4befe;
+            --ctp-text: #c6d0f5;
+            --ctp-subtext1: #b5bfe2;
+            --ctp-subtext0: #a5adce;
+            --ctp-overlay2: #949cbb;
+            --ctp-overlay1: #838ba7;
+            --ctp-overlay0: #737994;
+            --ctp-surface2: #626880;
+            --ctp-surface1: #51576d;
+            --ctp-surface0: #414559;
+            --ctp-base: #303446;
+            --ctp-mantle: #292c3c;
+            --ctp-crust: #232634;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Recursive', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Mono', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-variation-settings: 'MONO' 1, 'CASL' 0.5, 'slnt' -5;
+            background-color: var(--ctp-base);
+            color: var(--ctp-text);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: var(--ctp-surface0);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: var(--ctp-sapphire);
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .header .overview {
+            color: var(--ctp-subtext1);
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: var(--ctp-surface1);
+            border-radius: 8px;
+        }
+        
+        .stat-item:nth-child(1) .stat-number {
+            color: var(--ctp-red);
+        }
+
+        .stat-item:nth-child(2) .stat-number {
+            color: var(--ctp-peach);
+        }
+
+        .stat-item:nth-child(3) .stat-number {
+            color: var(--ctp-yellow);
+        }
+
+        .stat-item:nth-child(4) .stat-number {
+            color: var(--ctp-green);
+        }
+
+        .stat-item:nth-child(5) .stat-number {
+            color: var(--ctp-blue);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            color: var(--ctp-subtext0);
+            font-size: 0.9em;
+        }
+        
+        .controls {
+            background: var(--ctp-surface0);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .search-box, .filter-select {
+            padding: 10px 15px;
+            border: 2px solid var(--ctp-surface2);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            background: var(--ctp-surface1);
+            color: var(--ctp-text);
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .search-box:focus, .filter-select:focus {
+            outline: none;
+            border-color: var(--ctp-blue);
+        }
+        
+        .filter-select {
+            min-width: 150px;
+        }
+        
+        .sort-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .sort-btn {
+            padding: 8px 15px;
+            background: var(--ctp-surface1);
+            border: 2px solid var(--ctp-surface2);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            color: var(--ctp-text);
+        }
+        
+        .sort-btn:hover {
+            background: var(--ctp-surface2);
+        }
+        
+        .sort-btn.active {
+            background: var(--ctp-blue);
+            color: var(--ctp-base);
+            border-color: var(--ctp-blue);
+        }
+        
+        .repository-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        
+        .repo-card {
+            background: var(--ctp-surface0);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .repo-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        
+        .repo-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .repo-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: var(--ctp-pink);
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .status-up_to_date {
+            background: var(--ctp-green);
+            color: var(--ctp-base);
+        }
+        
+        .status-updates_available {
+            background: var(--ctp-yellow);
+            color: var(--ctp-base);
+        }
+        
+        .status-error {
+            background: var(--ctp-red);
+            color: var(--ctp-base);
+        }
+        
+        .status-no_remote {
+            background: var(--ctp-overlay0);
+            color: var(--ctp-text);
+        }
+        
+        .status-not_a_repo {
+            background: var(--ctp-surface2);
+            color: var(--ctp-subtext0);
+        }
+        
+        .repo-description {
+            color: var(--ctp-subtext1);
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .repo-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.9em;
+            color: var(--ctp-subtext0);
+        }
+        
+        .meta-item {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .meta-label {
+            font-weight: 500;
+        }
+        
+        .category-tag {
+            background: var(--ctp-surface2);
+            color: var(--ctp-text);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--ctp-subtext0);
+        }
+        
+        .no-results h3 {
+            margin-bottom: 10px;
+            color: var(--ctp-subtext1);
+        }
+        
+        @media (max-width: 768px) {
+            .repository-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                min-width: auto;
+            }
+            
+            .sort-buttons {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body class="theme-frappe">
+    <div class="container">
+        <div class="header">
+            <h1>my-repos</h1>
+            <div class="overview">None</div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">Total Repos</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">1</div>
+                    <div class="stat-label">Up to Date</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">1</div>
+                    <div class="stat-label">Updates Available</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">With Descriptions</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">2 MB</div>
+                    <div class="stat-label">Total Size</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <input type="text" class="search-box" placeholder="Search repositories..." id="searchInput">
+            
+            <select class="filter-select" id="categoryFilter">
+                <option value="">All Categories</option>
+            </select>
+            
+            <select class="filter-select" id="statusFilter">
+                <option value="">All Status</option>
+                <option value="up_to_date">Up to Date</option>
+                <option value="updates_available">Updates Available</option>
+                <option value="error">Error</option>
+                <option value="no_remote">No Remote</option>
+                <option value="not_a_repo">Not a Repo</option>
+            </select>
+            
+            <div class="sort-buttons">
+                <button class="sort-btn active" data-sort="size">Size</button>
+                <button class="sort-btn" data-sort="name">Name</button>
+                <button class="sort-btn" data-sort="modified">Modified</button>
+            </div>
+        </div>
+        
+        <div class="repository-grid" id="repositoryGrid">
+            <!-- Repositories will be populated by JavaScript -->
+        </div>
+        
+        <div class="no-results" id="noResults" style="display: none;">
+            <h3>No repositories found</h3>
+            <p>Try adjusting your search or filter criteria.</p>
+        </div>
+    </div>
+
+    <script>
+        // Repository data
+        const repositories = [
+  {
+    "short_name": "test-ai-agent",
+    "description": "Advanced AI agent framework for autonomous task execution",
+    "category": "ai_llm_agents",
+    "git_status": "up_to_date",
+    "git_error": null,
+    "size": 1000000,
+    "size_formatted": "1 MB",
+    "created": "2025-01-10",
+    "modified": "2025-01-10",
+    "path": "/test/test-ai-agent",
+    "always_pull": false
+  },
+  {
+    "short_name": "test-dev-tool",
+    "description": "Development utility for code generation and scaffolding",
+    "category": "dev_tools",
+    "git_status": "error",
+    "git_error": "network timeout",
+    "size": 750000,
+    "size_formatted": "750 KB",
+    "created": "2025-01-10",
+    "modified": "2025-01-10",
+    "path": "/test/test-dev-tool",
+    "always_pull": false
+  },
+  {
+    "short_name": "test-terminal-ui",
+    "description": "Beautiful terminal user interface components and widgets",
+    "category": "terminal_ui",
+    "git_status": "updates_available",
+    "git_error": null,
+    "size": 500000,
+    "size_formatted": "500 KB",
+    "created": "2025-01-10",
+    "modified": "2025-01-10",
+    "path": "/test/test-terminal-ui",
+    "always_pull": false
+  }
+];
+        const categories = ["ai_llm_agents", "dev_tools", "terminal_ui"];
+        
+        // DOM elements
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const repositoryGrid = document.getElementById('repositoryGrid');
+        const noResults = document.getElementById('noResults');
+        const sortButtons = document.querySelectorAll('.sort-btn');
+        
+        // State
+        let currentSort = 'size';
+        let filteredRepos = [...repositories];
+        
+        // Initialize
+        function init() {
+            populateCategoryFilter();
+            setupEventListeners();
+            renderRepositories();
+        }
+        
+        function populateCategoryFilter() {
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                categoryFilter.appendChild(option);
+            });
+        }
+        
+        function setupEventListeners() {
+            searchInput.addEventListener('input', filterAndRender);
+            categoryFilter.addEventListener('change', filterAndRender);
+            statusFilter.addEventListener('change', filterAndRender);
+            
+            sortButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentSort = btn.dataset.sort;
+                    sortButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    sortAndRender();
+                });
+            });
+        }
+        
+        function filterAndRender() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const categoryFilter_value = categoryFilter.value;
+            const statusFilter_value = statusFilter.value;
+            
+            filteredRepos = repositories.filter(repo => {
+                const matchesSearch = !searchTerm || 
+                    repo.short_name.toLowerCase().includes(searchTerm) ||
+                    repo.description.toLowerCase().includes(searchTerm) ||
+                    repo.category.toLowerCase().includes(searchTerm);
+                
+                const matchesCategory = !categoryFilter_value || repo.category === categoryFilter_value;
+                const matchesStatus = !statusFilter_value || repo.git_status === statusFilter_value;
+                
+                return matchesSearch && matchesCategory && matchesStatus;
+            });
+            
+            sortAndRender();
+        }
+        
+        function sortAndRender() {
+            filteredRepos.sort((a, b) => {
+                switch(currentSort) {
+                    case 'name':
+                        return a.short_name.localeCompare(b.short_name);
+                    case 'modified':
+                        return new Date(b.modified) - new Date(a.modified);
+                    case 'size':
+                    default:
+                        return b.size - a.size;
+                }
+            });
+            
+            renderRepositories();
+        }
+        
+        function renderRepositories() {
+            if (filteredRepos.length === 0) {
+                repositoryGrid.style.display = 'none';
+                noResults.style.display = 'block';
+                return;
+            }
+            
+            repositoryGrid.style.display = 'grid';
+            noResults.style.display = 'none';
+            
+            repositoryGrid.innerHTML = filteredRepos.map(repo => {
+                const statusClass = `status-${repo.git_status}`;
+                const statusText = getStatusText(repo.git_status);
+                const categoryDisplay = repo.category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                
+                return `
+                    <div class="repo-card">
+                        <div class="repo-header">
+                            <div class="repo-name">${repo.short_name}</div>
+                            <div class="status-badge ${statusClass}">${statusText}</div>
+                        </div>
+                        
+                        <div class="repo-description">${repo.description}</div>
+                        
+                        <div class="repo-meta">
+                            <div class="meta-item">
+                                <span class="meta-label">Category:</span>
+                                <span class="category-tag">${categoryDisplay}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Size:</span>
+                                <span>${repo.size_formatted}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Created:</span>
+                                <span>${repo.created}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Modified:</span>
+                                <span>${repo.modified}</span>
+                            </div>
+                        </div>
+                        
+                        ${repo.git_error ? `<div style="margin-top: 10px; padding: 8px; background: #f8d7da; color: #721c24; border-radius: 4px; font-size: 0.9em;">Error: ${repo.git_error}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function getStatusText(status) {
+            const statusMap = {
+                'up_to_date': '✓ Up to Date',
+                'updates_available': '⬆ Updates Available',
+                'error': '⚠ Error',
+                'no_remote': '◌ No Remote',
+                'not_a_repo': '○ Not a Repo',
+                'unknown': '? Unknown'
+            };
+            return statusMap[status] || '? Unknown';
+        }
+        
+        // Initialize the application
+        init();
+    </script>
+</body>
+</html>

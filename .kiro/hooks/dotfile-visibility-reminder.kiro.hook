@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Dotfile Visibility Reminder",
+  "description": "Use ls -a/-A and include .* patterns in globs when working with directories, following the dotfile visibility principle `.*/**`",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      ".*/**",
+      "."
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "\"👁️ Dotfile Visibility - No bare `ls` when orienting to directories. Dotfiles are organizational, not hidden. Use `ls -a` or `ls -A` for directory reconnaissance. Include `.*` patterns in glob searches. Treat dotfolders as first-class citizens.\""
+  },
+  "workspaceFolderName": "collectivist",
+  "shortName": "dotfile-visibility-reminder"
+}

@@ -1,0 +1,104 @@
+# 💮 Collectivist Configuration
+# Rename this file to `llm-config.yaml` to activate
+
+# =============================================================================
+# 🤖 LLM CONFIGURATION
+# =============================================================================
+
+# Choose LLM provider: lmstudio, ollama, openrouter, openai, anthropic, pollinations
+llm_provider: lmstudio
+
+# Optional: Specify exact model (uses smart defaults if not set)
+llm_model: openai/gpt-oss-20b
+
+# =============================================================================
+# 🔑 API KEYS (Required for cloud providers)
+# =============================================================================
+
+# For OpenRouter
+# llm_api_key: sk-or-v1-your-openrouter-key
+
+# For OpenAI
+# llm_api_key: sk-your-openai-key
+
+# For Anthropic
+# llm_api_key: sk-ant-your-anthropic-key
+
+# =============================================================================
+# 🌐 CUSTOM ENDPOINTS (Optional - overrides default provider URLs)
+# =============================================================================
+
+# llm_base_url: https://custom-endpoint.com/v1
+
+# =============================================================================
+# 📚 CONFIGURATION EXAMPLES BY PROVIDER
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 🏠 LMSTUDIO (Local, Recommended - No API Key Needed)
+# Install LMStudio, load a model, and start the local server
+# -----------------------------------------------------------------------------
+# llm_provider: lmstudio
+# llm_model: llama-3.1-8b-instruct-q4_0  # Whatever you have loaded
+
+# -----------------------------------------------------------------------------
+# 🐳 OLLAMA (Local - No API Key Needed)
+# Install Ollama, pull models with 'ollama pull <model>'
+# -----------------------------------------------------------------------------
+# llm_provider: ollama
+# llm_model: llama3.1:8b-instruct-q4_0  # Exact model name
+
+# -----------------------------------------------------------------------------
+# ☁️ OPENROUTER (Cloud - API Key Required)
+# Access to 100+ models through unified API
+# -----------------------------------------------------------------------------
+# llm_provider: openrouter
+# llm_api_key: sk-or-v1-...
+# llm_model: anthropic/claude-4.5-haiku
+# llm_model: openai/gpt-5.1-mini
+
+# -----------------------------------------------------------------------------
+# ⚡ OPENAI (Cloud - API Key Required)
+# Direct access to OpenAI models
+# -----------------------------------------------------------------------------
+# llm_provider: openai
+# llm_api_key: sk-...
+# llm_model: gpt-5.2
+
+# -----------------------------------------------------------------------------
+# 🧠 ANTHROPIC (Cloud - API Key Required)
+# Claude models through official API
+# -----------------------------------------------------------------------------
+# llm_provider: anthropic
+# llm_api_key: sk-ant-...
+# llm_model: <claude model>
+
+# -----------------------------------------------------------------------------
+# 🎨 POLLINATIONS (Specialized - No API Key)
+# Image generation focused, experimental
+# -----------------------------------------------------------------------------
+# llm_provider: pollinations
+# llm_model: openai  # or anthropic
+
+# =============================================================================
+# 🧠 SMART DEFAULTS (Used when llm_model is not specified)
+# =============================================================================
+#
+# 🏠 LMStudio: openai/gpt-oss-20b (**free!**)
+# ☁️ OpenRouter: tngtech/deepseek-r1t2-chimera:free 
+# 🎨 Pollination: openai # **no api key needed**
+# 🐳 Ollama: llama3.1 # (? I dunno I don't use it 🤷‍♂️) **free!**
+# ⚡ OpenAI: gpt-5.2
+# 🧠 Anthropic: claude-4.5-sonnet
+
+
+# =============================================================================
+# 🧪 TESTING YOUR CONFIGURATION
+# =============================================================================
+#
+# Test your LLM connection:
+# python -c "from .collection.src.llm import LLMClient; print('✅ Connected!' if LLMClient.from_config().test_connection() else '❌ Failed to connect')"
+#
+# List available models (if supported by provider):
+# python -c "from .collection.src.llm import LLMClient; print(LLMClient.from_config().get_available_models())"
+#

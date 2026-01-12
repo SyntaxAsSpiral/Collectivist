@@ -1,0 +1,302 @@
+#!/usr/bin/env python3
+"""
+Analyzer Stage - Collection Type Detection
+Uses LLM to inspect directory and determine collection type, then generates collection.yaml
+"""
+
+import json
+from pathlib import Path
+from typing import Dict, Any, Optional
+import yaml
+
+from llm import LLMClient, Message
+from plugin_interface import PluginRegistry
+from schema_definitions import get_collection_schema, generate_collection_config, list_collection_types
+from events import EventEmitter, EventStage
+
+
+class CollectionAnalyzer:
+    """Analyzes directories to determine collection type and generate configuration"""
+
+    def __init__(self, llm_client: LLMClient, event_emitter: Optional[EventEmitter] = None):
+        self.llm = llm_client
+        self.emitter = event_emitter
+
+    def inspect_directory(self, path: Path, max_depth: int = 2, max_samples: int = 20) -> Dict[str, Any]:
+        """
+        Inspect directory structure and contents.
+        Returns metadata about directory for LLM analysis.
+        """
+        if not path.is_dir():
+            raise ValueError(f"Path is not a directory: {path}")
+
+        inspection = {
+            'path': str(path),
+            'total_items': 0,
+            'total_dirs': 0,
+            'total_files': 0,
+            'file_types': {},  # extension -> count
+            'directory_names': [],  # sample of dir names
+            'file_samples': [],  # sample of file names
+            'has_git_repos': False,
+            'readme_content': None
+        }
+
+        # Walk directory up to max_depth
+        items = []
+        for item in path.iterdir():
+            if item.name.startswith('.'):
+                continue
+            items.append(item)
+            if len(items) >= max_samples:
+                break
+
+        # Analyze items
+        for item in items:
+            inspection['total_items'] += 1
+
+            if item.is_dir():
+                inspection['total_dirs'] += 1
+                inspection['directory_names'].append(item.name)
+
+                # Check if git repo
+                if (item / '.git').exists():
+                    inspection['has_git_repos'] = True
+
+            elif item.is_file():
+                inspection['total_files'] += 1
+                inspection['file_samples'].append(item.name)
+
+                # Track file extensions
+                ext = item.suffix.lower()
+                if ext:
+                    inspection['file_types'][ext] = inspection['file_types'].get(ext, 0) + 1
+
+        # Look for README at collection root
+        readme_patterns = ['README.md', 'readme.md', 'README', 'Readme.md']
+        for pattern in readme_patterns:
+            readme_path = path / pattern
+            if readme_path.exists():
+                try:
+                    with open(readme_path, 'r', encoding='utf-8', errors='ignore') as f:
+                        inspection['readme_content'] = f.read()[:2000]
+                        break
+                except Exception:
+                    continue
+
+        return inspection
+
+    def generate_collection_config(
+        self,
+        path: Path,
+        force_type: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Generate collection.yaml schema configuration.
+
+        If force_type is specified, skip LLM detection and use that type.
+        Otherwise, use LLM to analyze directory and determine type.
+
+        Returns dict that can be saved as collection.yaml
+        """
+        if self.emitter:
+            self.emitter.set_stage(EventStage.ANALYZE)
+            self.emitter.info("Starting collection analysis")
+
+        # Inspect directory
+        if self.emitter:
+            self.emitter.info("Inspecting directory structure")
+        inspection = self.inspect_directory(path)
+
+        # Determine collection type
+        if force_type:
+            if self.emitter:
+                self.emitter.info(f"Using forced collection type: {force_type}")
+            collection_type = force_type
+        else:
+            # Use LLM to determine type
+            if self.emitter:
+                self.emitter.info("Querying LLM for collection type detection")
+            collection_type = self._detect_collection_type(inspection)
+            if self.emitter:
+                self.emitter.success(f"Collection type detected: {collection_type}")
+
+        # Validate collection type has a schema definition
+        try:
+            schema = get_collection_schema(collection_type)
+        except ValueError as e:
+            if self.emitter:
+                self.emitter.error(f"Invalid collection type: {collection_type}")
+            raise e
+
+        # Generate configuration using schema definitions
+        if self.emitter:
+            self.emitter.info("Generating collection schema configuration")
+        
+        config = generate_collection_config(
+            collection_type=collection_type,
+            name=path.name,
+            path=str(path)
+        )
+
+        if self.emitter:
+            self.emitter.complete_stage("Collection analysis complete")
+
+        return config
+
+    def _detect_collection_type(self, inspection: Dict[str, Any]) -> str:
+        """
+        Use LLM to detect collection type from inspection data.
+        Returns collection type name (e.g., 'repositories', 'media', 'documents')
+        """
+        # Get available collection types from schema definitions
+        available_types = list_collection_types()
+        type_descriptions = []
+        
+        for collection_type in available_types:
+            schema = get_collection_schema(collection_type)
+            type_descriptions.append(f"- {collection_type}: {schema.description}")
+        
+        type_info = '\n'.join(type_descriptions)
+
+        # Build prompt
+        prompt = f"""You are analyzing a directory to determine what type of collection it contains.
+
+Available collection types:
+{type_info}
+
+Directory inspection:
+- Total items: {inspection['total_items']}
+- Directories: {inspection['total_dirs']}
+- Files: {inspection['total_files']}
+- Contains git repositories: {inspection['has_git_repos']}
+- File types: {json.dumps(inspection['file_types'], indent=2)}
+- Sample directory names: {', '.join(inspection['directory_names'][:10])}
+- Sample file names: {', '.join(inspection['file_samples'][:10])}
+
+README content (if present):
+{inspection.get('readme_content', 'No README found')[:500]}
+
+Based on this inspection, determine the collection type. Respond with ONLY the collection type name (e.g., "repositories", "media", "documents").
+
+Collection type:"""
+
+        # Query LLM
+        try:
+            response = self.llm.chat(
+                messages=[Message(role="user", content=prompt)],
+                temperature=0.1,
+                max_tokens=50
+            )
+
+            collection_type = response.strip().lower().replace('"', '')
+
+            # Validate against available types
+            if collection_type in available_types:
+                return collection_type
+            else:
+                # Fallback: use heuristics
+                return self._heuristic_detection(inspection)
+
+        except Exception as e:
+            print(f"LLM detection failed: {e}, falling back to heuristics")
+            return self._heuristic_detection(inspection)
+
+    def _heuristic_detection(self, inspection: Dict[str, Any]) -> str:
+        """
+        Fallback heuristic-based detection when LLM fails.
+        """
+        # Check if mostly git repos
+        if inspection['has_git_repos'] and inspection['total_dirs'] > 0:
+            return "repositories"
+
+        # Check file types for media
+        media_extensions = {'.mp4', '.mkv', '.avi', '.mp3', '.flac', '.wav', '.jpg', '.png', '.gif'}
+        if any(ext in media_extensions for ext in inspection['file_types'].keys()):
+            return "media"
+
+        # Check for documents
+        doc_extensions = {'.pdf', '.doc', '.docx', '.txt', '.md'}
+        if any(ext in doc_extensions for ext in inspection['file_types'].keys()):
+            return "documents"
+
+        # Default to utilities_misc
+        return "repositories"  # Safe default since we have that plugin
+
+    def create_collection(
+        self,
+        path: Path,
+        force_type: Optional[str] = None,
+        output_path: Optional[Path] = None
+    ) -> Path:
+        """
+        Analyze directory and create collection.yaml schema file.
+
+        Returns path to created collection.yaml
+        """
+        # Generate config
+        config = self.generate_collection_config(path, force_type=force_type)
+
+        # Determine output path - save in .collection directory
+        if output_path is None:
+            collection_dir = path / '.collection'
+            collection_dir.mkdir(exist_ok=True)
+            output_path = collection_dir / 'collection.yaml'
+
+        # Save config
+        with open(output_path, 'w', encoding='utf-8') as f:
+            yaml.dump(config, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+
+        if self.emitter:
+            self.emitter.success(f"Created collection schema: {output_path}")
+        else:
+            print(f"[OK] Created collection schema: {output_path}")
+            print(f"  Type: {config['collection_type']}")
+            print(f"  Status: {config['status']}")
+            print(f"  Name: {config['name']}")
+            print(f"  Categories: {len(config['categories'])}")
+
+        return output_path
+
+
+def analyze_collection(collection_path: str, force_type: Optional[str] = None) -> Path:
+    """
+    CLI helper: analyze a directory and create collection.yaml
+
+    Args:
+        collection_path: Path to directory to analyze
+        force_type: Optional collection type to force (skip LLM detection)
+
+    Returns:
+        Path to created collection.yaml
+    """
+    from llm import create_client_from_config
+
+    # Create LLM client
+    llm_client = create_client_from_config()
+
+    # Create analyzer
+    analyzer = CollectionAnalyzer(llm_client)
+
+    # Analyze and create collection
+    path = Path(collection_path).resolve()
+    return analyzer.create_collection(path, force_type=force_type)
+
+
+if __name__ == '__main__':
+    import sys
+
+    if len(sys.argv) < 2:
+        print("Usage: python analyzer.py <collection_path> [force_type]")
+        print("\nExample: python analyzer.py C:\\Users\\synta\\repos repositories")
+        sys.exit(1)
+
+    collection_path = sys.argv[1]
+    force_type = sys.argv[2] if len(sys.argv) > 2 else None
+
+    try:
+        result = analyze_collection(collection_path, force_type)
+        print(f"\n[OK] Analysis complete: {result}")
+    except Exception as e:
+        print(f"[X] Analysis failed: {e}")
+        sys.exit(1)

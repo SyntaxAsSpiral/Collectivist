@@ -146,7 +146,7 @@ cython_debug/
 .templates/
 
 # Kiro spec files (development artifacts)
-.kiro/
+# .kiro/
 
 # Web build artifacts and dependencies
 web/build/
