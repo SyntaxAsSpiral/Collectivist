@@ -1,75 +1,59 @@
 # 💮 Collectivist
 
 **AI-powered curator** for intentional collectors.<br> 
-Transforms semantically coherent hoards into beautiful living documentation substrates with LLM-powered organization and curation.
+*[Work in Progress]* Exploring how to transform semantically coherent hoards into beautiful living documentation substrates with LLM-powered organization and curation.
 
-## 🌱 Features
+## 🌱 Planned Features
 
 - **Domain-specific intelligence**: Git metadata, ID3 tags, EXIF data, citations, and semantic understanding
 - **LLM-powered analysis**: Bespoke categorization and rich description generation (perfect context for agents)
-- **Self-healing documentation**: Collection indices adapt to filesystem changes using semantic diffing and persisted structural memory
+- **Self-healing documentation**: Collection indices that adapt to filesystem changes using semantic diffing and persisted structural memory
 - **Flexible configuration**: All OpenAI compatible providers supported - local (LM Studio, Ollama), cloud (OpenRouter, Pollinations), or custom endpoints
 - **Multi-format outputs**: Markdown documentation, interactive HTML index, JSON export
 - **Collection types**: Repositories, Obsidian vaults, documents, media files, research papers, creative projects, datasets
 
+## 🚧 Current Status
+
+**Repository collections** are partially implemented with basic indexing and description generation. The broader vision of multi-format collection support, plugin architecture, and distributed coordination is in active development.
+
+See [.kiro/specs/collectivist/](/.kiro/specs/collectivist/) for detailed requirements and design documentation.
+
 ## Installation
 
-### 🧺 Portable Install (Analyze + Index + Describe)
-#### Clone repo or download .zip from latest release. 
+### 🧺 Experimental Build (Repository Collections Only)
+#### Clone repo to try the current repository indexing implementation. 
 
-1. **Extract/copy** the `.collection/` folder to your collection directory
-2. **Run** the initialization script:
-   ```bash
-   # Windows
-   .collection\initialize-collection.bat
-   
-   # Unix/Linux/macOS
-   .collection/initialize-collection.sh
-   ```
-3. **Analyze** your collection:
-   ```bash
-   python .collection/src/__main__.py analyze
-   ```
-4. **Generate** documentation:
-   ```bash
-   python .collection/src/__main__.py update
-   ```
+*Note: Only repository collections are currently functional. Other collection types are planned.*
 
 ---
 
-### 🎮 Standard Installation (Interactive UI + Curation Loop + Scheduling + Automation)
+### 🎮 Full Installation (Coming Eventually)
 ```bash
-# Coming soon: pip install collectivist
+# Planned: pip install collectivist
 # collectivist init ~/my-collection --standard
 ```
+*The complete multi-collection system with interactive UI, curation loops, and automation is in development.*
 ---
 
 ### 🤖 Configuration
 
-- Portable version comes pre-configured for LM Studio with GPT-OSS-20b (free!).  You can edit `llm-config.yaml` to choose a different backend or customize your own.   
--  Obsidian users can drop the `llm-config.md` example as a note into their collection vault folder.
+- Current implementation works with LM Studio and other OpenAI-compatible endpoints. Configuration is evolving as the system develops.
 
-### ⚠️ Reinitialization Warning
+### ⚠️ Development Warning
 
-Running `python .collection/src/__main__.py analyze` again will **reset your collection's schema evolution and curation history**. This action cannot be undone.
+This is experimental software. Expect breaking changes and incomplete features as the architecture evolves.
 
-- **Use `analyze`** only for: First-time setup, major collection restructuring
-- **Use `update`** for: Regular curation loop (preserves schema evolution)
-- **Schema evolution** from the Curator is lost when re-analyzing
+## Collection Schema (Planned)
 
-The curation loop is designed for continuous improvement - avoid reinitialization unless necessary!
+#### Collection Types (In Development)
+- **Repositories**: Git-aware scanning, commit summaries, category taxonomy *(partially implemented)*
+- **Research**: Citation extraction, topic clustering, reading status *(planned)*
+- **Media**: Timeline organization, mood/genre inference, EXIF metadata *(planned)*
+- **Creative**: Version tracking, asset linking, format intelligence *(planned)*
+- **Datasets**: Schema inference, sample previews, data provenance *(planned)*
+- **Documents**: Text extraction, metadata parsing, content analysis *(planned)*
 
-## Collection Schema
-
-#### Collection Types Auto-Detected
-- **Repositories**: Git-aware scanning, commit summaries, category taxonomy
-- **Research**: Citation extraction, topic clustering, reading status
-- **Media**: Timeline organization, mood/genre inference, EXIF metadata
-- **Creative**: Version tracking, asset linking, format intelligence
-- **Datasets**: Schema inference, sample previews, data provenance
-- **Documents**: Text extraction, metadata parsing, content analysis
-
-The `collection.yaml` file defines your collection schema (generated by analyzer).
+The `collection.yaml` schema is evolving as different collection types are implemented.
 
 **Repository Collection Example:**
 ```yaml
@@ -114,92 +98,31 @@ scanner_config:
     image: [".jpg", ".png", ".gif", ".webp"]
 ```
 
-## 🔌 Plugin Architecture
+## 🔌 Plugin Architecture (In Development)
 
-**Built-in Plugin System:** Collectivist includes domain-specific plugins for different collection types. Plugins are automatically selected based on collection type detection during analysis.
+**Planned Plugin System:** Collectivist will include domain-specific plugins for different collection types. The plugin architecture is being designed to automatically select appropriate plugins based on collection type detection.
 
-**Available Plugins:**
-- **repositories** - Git repository collections with metadata extraction and status tracking
-- **media** - Media collections with ID3, EXIF, and video metadata extraction
-- **documents** - Document collections with text extraction from PDFs, Office docs, and markdown files
-- **research** - Research paper collections with citation extraction and reading status tracking
-- **creative** - Creative project collections with version tracking and asset linking
-- **datasets** - Dataset collections with schema inference and sample previews
+**Development Status:**
+- **repositories** - Basic implementation exists *(functional but evolving)*
+- **obsidian vaults** - Planned
+- **media libraries** - Planned  
+- **document libraries** - Planned
 
-**Plugin Discovery:** When you run `analyze`, Collectivist detects your collection type and automatically uses the appropriate plugin for metadata extraction and content analysis.
+**Plugin Discovery:** The automatic collection type detection and plugin routing system is in development.
 
-**Custom Plugins:** Implement the `CollectionScanner` interface. See existing plugins in `plugins/` directory for reference implementations.
+**Custom Plugins:** Plugin interface is being designed - see specs for current architecture plans.
 
 ## 🔗 Workflow Stages
 
-### Stage 1: Analyzer
+### Stage 1: Indexer (deterministic)
 
-Inspects directory structure and determines collection type using LLM analysis.
+Initialize for a specific type of library or get a custom schema. 
 
-```bash
-python .collection/src/__main__.py analyze
-# Creates collection.yaml with detected type and suggested categories
-```
+Discovers items and note metadata using domain-specific plugins.
 
-### Stage 2: Indexer
-
-Discovers items and extracts metadata using domain-specific plugins.
-
-```bash
-# Run via pipeline (recommended)
-python .collection/src/__main__.py update --skip-describe --skip-render
-```
-
-### Stage 3: Describer
+### Stage 2: Describer (LLM)
 
 Generates LLM descriptions and collection overview with concurrent workers.
-
-```bash
-python .collection/src/__main__.py describe
-
-# Custom worker count
-python .collection/src/__main__.py describe --workers 10
-```
-
-### Stage 4: Renderer
-
-Transforms YAML index into formatted outputs using template-based generation.
-
-```bash
-python .collection/src/__main__.py render
-# Generates README.md, Collection.html, and index.json
-```
-
-## Why This Approach?
-
-General file organizers chase "never think about files again" but usually end up with mediocre generic sorting. Collectivist focuses on **intentional collections** where each item matters, enabling:
-
-- **Depth over breadth**: Domain-specific intelligence instead of one-size-fits-all rules
-- **Collection overview generation**: LLM analyzes complete collection data to create contextual summaries that capture the essence and patterns of your collection
-- **Template-based rendering**: Deterministic output generation ensures consistent, reproducible documentation from structured data
-- **Curation system**: Ongoing pattern learning and intelligent reorganization (standard level)
-- **Documentation as artifact**: READMEs become real knowledge repositories with rich context and semantic understanding
-
-## 📅 Roadmap
-
-### Complete: Minimal Level MVP
-- **Portable-install drop-in system** - `.collection/` folder works anywhere
-- **LLM-powered collection analysis** - Auto-detects repository, research, media, creative, dataset types
-- **Domain-specific intelligence** - Git metadata, EXIF, citations, schema inference
-- **Collection overview generation** - LLM-powered contextual summaries of complete collections
-- **Template-based rendering** - Deterministic output in multiple formats (MD, HTML, JSON)
-- **Multi-location configuration** - YAML and Markdown-embedded config with smart defaults
-- **Self-contained architecture** - All code + deps in one folder
-
-### Next: Standard Level (Schema Evolution)
-- **Conservative schema evolution** - Curator analyzes → evolves schema only when necessary
-- **2-phase curation** - Phase 1 analyzes effectiveness, Phase 2 designs evolution (opt-in)
-- **LLM provider management** - Enhanced configuration of models/providers
-
-### Future: Package Manager & Extensions
-- **Central distribution** - `pip install collectivist` convenience
-- **Auto-scheduling** - Background updates and maintenance
-- **Web UI enhancements** - Modern interface for schema evolution
 
 ## Contributing
 
