@@ -1,5 +1,5 @@
 {
-  "enabled": true,
+  "enabled": false,
   "name": "Dotfile Visibility Reminder",
   "description": "Use ls -a/-A and include .* patterns in globs when working with directories, following the dotfile visibility principle `.*/**`",
   "version": "1",

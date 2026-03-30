@@ -19,6 +19,7 @@ graph TB
         S2[".collectivist seed<br/>Documents"] 
         S3[".collectivist seed<br/>Media"]
         S4[".collectivist seed<br/>Research"]
+        S5[".collecticist seed<br>Obsidian"]
     end
     
     subgraph "Central Trunk"
